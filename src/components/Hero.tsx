@@ -1,108 +1,79 @@
 import React from 'react';
-import { ArrowRight, Star, Users, Award } from 'lucide-react';
+import { Plane, MapPin, Shield } from 'lucide-react';
 
 interface HeroProps {
-  setActiveSection: (section: string) => void;
+  onReservation: () => void;
+  onQuote: () => void;
 }
 
-const Hero: React.FC<HeroProps> = ({ setActiveSection }) => {
+const Hero: React.FC<HeroProps> = ({ onReservation, onQuote }) => {
   return (
-    <section className="relative bg-gradient-to-br from-orange-600 to-red-600 text-white">
-      {/* Hero Background */}
-      <div className="absolute inset-0">
-        <img
-          src="https://images.pexels.com/photos/3278215/pexels-photo-3278215.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-          alt="Voyage à Dakar"
-          className="w-full h-full object-cover opacity-20"
-        />
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: 'url(https://images.pexels.com/photos/1008155/pexels-photo-1008155.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1280&fit=crop)',
+        }}
+      >
+        <div className="absolute inset-0 bg-navy-900 bg-opacity-60"></div>
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <h1 className="text-4xl lg:text-6xl font-bold mb-6 leading-tight">
-              Votre partenaire de confiance pour tous vos voyages
-            </h1>
-            <p className="text-xl lg:text-2xl mb-8 text-orange-100">
-              Depuis Dakar, nous vous accompagnons dans la réalisation de tous vos projets de voyage avec expertise et professionnalisme.
-            </p>
+      {/* Content */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+            Votre partenaire
+            <span className="text-gold-500 block">de confiance</span>
+            pour tous vos projets
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-gray-200 mb-8 max-w-2xl mx-auto">
+            Découvrez le monde avec Assirik Tours, votre agence spécialisée en billets d'avion, assistance visa et services immobiliers à Dakar.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <button
+              onClick={onReservation}
+              className="bg-gold-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-gold-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              Réserver maintenant
+            </button>
+            <button
+              onClick={onQuote}
+              className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-white hover:text-navy-900 transition-all duration-200"
+            >
+              Demander un devis
+            </button>
+          </div>
+
+          {/* Quick Services */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
+            <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 text-white hover:bg-opacity-20 transition-all duration-200">
+              <Plane className="h-12 w-12 text-gold-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Billets d'Avion</h3>
+              <p className="text-gray-200">Solutions économiques et flexibles</p>
+            </div>
             
-            <div className="flex flex-col sm:flex-row gap-4 mb-12">
-              <button
-                onClick={() => setActiveSection('services')}
-                className="bg-white text-orange-600 px-8 py-4 rounded-lg font-semibold flex items-center justify-center hover:bg-orange-50 transition-colors duration-200"
-              >
-                Découvrir nos services
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </button>
-              <button
-                onClick={() => setActiveSection('contact')}
-                className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-orange-600 transition-colors duration-200"
-              >
-                Nous contacter
-              </button>
+            <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 text-white hover:bg-opacity-20 transition-all duration-200">
+              <Shield className="h-12 w-12 text-gold-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Assistance Visa</h3>
+              <p className="text-gray-200">Accompagnement personnalisé</p>
             </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-8 pt-8 border-t border-orange-400">
-              <div className="text-center">
-                <div className="flex items-center justify-center mb-2">
-                  <Users className="h-8 w-8 text-yellow-300" />
-                </div>
-                <div className="text-3xl font-bold mb-1">500+</div>
-                <div className="text-orange-200 text-sm">Clients satisfaits</div>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center mb-2">
-                  <Star className="h-8 w-8 text-yellow-300" />
-                </div>
-                <div className="text-3xl font-bold mb-1">4.8/5</div>
-                <div className="text-orange-200 text-sm">Note moyenne</div>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center mb-2">
-                  <Award className="h-8 w-8 text-yellow-300" />
-                </div>
-                <div className="text-3xl font-bold mb-1">10+</div>
-                <div className="text-orange-200 text-sm">Années d'expérience</div>
-              </div>
+            
+            <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 text-white hover:bg-opacity-20 transition-all duration-200">
+              <MapPin className="h-12 w-12 text-gold-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Services Immobiliers</h3>
+              <p className="text-gray-200">Gestion et promotion immobilière</p>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="lg:pl-8">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8">
-              <h3 className="text-2xl font-bold mb-6">Pourquoi choisir Assirik Tours ?</h3>
-              <ul className="space-y-4">
-                <li className="flex items-start">
-                  <div className="bg-yellow-400 rounded-full p-2 mr-4 mt-1">
-                    <Star className="h-4 w-4 text-orange-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-1">Expertise locale</h4>
-                    <p className="text-orange-100">Connaissance approfondie du marché sénégalais</p>
-                  </div>
-                </li>
-                <li className="flex items-start">
-                  <div className="bg-yellow-400 rounded-full p-2 mr-4 mt-1">
-                    <Star className="h-4 w-4 text-orange-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-1">Service personnalisé</h4>
-                    <p className="text-orange-100">Accompagnement sur mesure pour chaque voyage</p>
-                  </div>
-                </li>
-                <li className="flex items-start">
-                  <div className="bg-yellow-400 rounded-full p-2 mr-4 mt-1">
-                    <Star className="h-4 w-4 text-orange-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-1">Partenaires de confiance</h4>
-                    <p className="text-orange-100">Collaboration avec les meilleures compagnies</p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </div>
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+        <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center">
+          <div className="w-1 h-3 bg-white rounded-full mt-2 animate-pulse"></div>
         </div>
       </div>
     </section>

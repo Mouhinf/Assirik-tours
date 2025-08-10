@@ -1,138 +1,114 @@
 import React from 'react';
-import { MapPin, Users, Award, Heart } from 'lucide-react';
+import { Award, Users, Globe, Clock } from 'lucide-react';
 
-const About: React.FC = () => {
-  const team = [
-    {
-      name: "Amadou Diallo",
-      role: "Directeur Général",
-      image: "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1",
-      description: "Expert en voyages avec plus de 15 ans d'expérience dans l'industrie touristique sénégalaise."
-    },
-    {
-      name: "Fatou Sow",
-      role: "Responsable Billetterie",
-      image: "https://images.pexels.com/photos/3785077/pexels-photo-3785077.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1",
-      description: "Spécialiste des tarifs aériens et des négociations avec les compagnies internationales."
-    },
-    {
-      name: "Moussa Ba",
-      role: "Conseiller Visa",
-      image: "https://images.pexels.com/photos/2182970/pexels-photo-2182970.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1",
-      description: "Expert en procédures consulaires avec un taux de réussite de 95% pour les demandes de visa."
-    }
-  ];
+interface AboutProps {
+  expanded?: boolean;
+}
 
-  const values = [
-    {
-      icon: Heart,
-      title: "Passion du Service",
-      description: "Nous mettons notre cœur dans chaque projet de voyage pour garantir votre satisfaction totale."
-    },
-    {
-      icon: Award,
-      title: "Excellence",
-      description: "Nous visons l'excellence dans tous nos services avec des standards de qualité élevés."
-    },
-    {
-      icon: Users,
-      title: "Proximité Client",
-      description: "Une relation de confiance basée sur l'écoute, la transparence et l'accompagnement personnalisé."
-    },
-    {
-      icon: MapPin,
-      title: "Expertise Locale",
-      description: "Notre ancrage local nous permet de vous offrir les meilleurs conseils et tarifs du marché."
-    }
+const About: React.FC<AboutProps> = ({ expanded = false }) => {
+  const stats = [
+    { icon: Users, label: 'Clients satisfaits', value: '2500+' },
+    { icon: Globe, label: 'Destinations', value: '150+' },
+    { icon: Award, label: 'Années d\'expérience', value: '8' },
+    { icon: Clock, label: 'Support 24h/7j', value: '100%' },
   ];
 
   return (
-    <section className="py-20">
+    <section id="about" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-            À Propos d'Assirik Tours
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Une agence de voyage sénégalaise de référence, ancrée à Dakar et dédiée à l'excellence du service depuis plus de 10 ans.
-          </p>
-        </div>
-
-        {/* Story Section */}
-        <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Content */}
           <div>
-            <h3 className="text-3xl font-bold text-gray-900 mb-6">Notre Histoire</h3>
-            <div className="space-y-6 text-gray-600 leading-relaxed">
-              <p>
-                Fondée en 2014 au cœur de Dakar, Assirik Tours est née de la passion du voyage et 
-                du désir d'offrir aux Sénégalais et aux résidents un service d'excellence dans l'organisation 
-                de leurs déplacements internationaux.
-              </p>
-              <p>
-                Située dans le quartier dynamique de Fass Delorme, notre agence s'est rapidement imposée 
-                comme un partenaire de confiance grâce à notre expertise locale, notre réseau international 
-                et notre approche personnalisée du conseil en voyage.
-              </p>
-              <p>
-                Aujourd'hui, nous sommes fiers d'avoir accompagné plus de 500 clients dans la réalisation 
-                de leurs projets de voyage, qu'il s'agisse de voyages d'affaires, de pèlerinages, 
-                d'études ou de vacances en famille.
-              </p>
+            <h2 className="text-4xl md:text-5xl font-bold text-navy-900 mb-6">
+              À propos de
+              <span className="text-gold-500"> Assirik Tours</span>
+            </h2>
+            
+            <p className="text-xl text-gray-600 mb-6 leading-relaxed">
+              Assirik Tours est votre partenaire de confiance à Dakar, spécialisé dans les services de voyage 
+              et l'immobilier avec un engagement fort envers l'excellence et la proximité client.
+            </p>
+
+            {expanded ? (
+              <>
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Située à Rue 22 prolongée, Fass Delorme à Dakar, notre agence s'est spécialisée dans trois 
+                  domaines d'expertise : la vente de billets d'avion, l'assistance visa et les services immobiliers. 
+                  Cette diversification nous permet d'offrir des solutions complètes à nos clients.
+                </p>
+
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Notre équipe expérimentée privilégie une approche orientée client avec un réseau solide de 
+                  partenaires locaux et internationaux. Nous maîtrisons les procédures consulaires complexes 
+                  et disposons d'une expertise reconnue dans la gestion immobilière.
+                </p>
+
+                <div className="bg-gold-50 rounded-lg p-6 mb-8">
+                  <h3 className="text-xl font-semibold text-navy-900 mb-3">Notre Mission</h3>
+                  <p className="text-gray-700">
+                    Fournir des services de première qualité avec transparence et professionnalisme. 
+                    Nous nous engageons à offrir fiabilité, excellence et proximité dans tous nos domaines 
+                    d'intervention, du voyage à l'immobilier.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-600 mb-8 leading-relaxed">
+                  Notre équipe d'experts vous accompagne dans vos projets de voyage et immobiliers 
+                  avec une approche personnalisée, la fiabilité et l'excellence comme maîtres-mots.
+                </p>
+              </>
+            )}
+
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <div className="w-4 h-4 bg-gold-500 rounded-full mr-4"></div>
+                <span className="text-gray-700 font-medium">Réseau de partenaires solide</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-4 h-4 bg-gold-500 rounded-full mr-4"></div>
+                <span className="text-gray-700 font-medium">Transparence et professionnalisme</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-4 h-4 bg-gold-500 rounded-full mr-4"></div>
+                <span className="text-gray-700 font-medium">Accompagnement personnalisé</span>
+              </div>
             </div>
           </div>
-          <div>
-            <img
-              src="https://images.pexels.com/photos/3278215/pexels-photo-3278215.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&dpr=1"
-              alt="Bureau Assirik Tours Dakar"
-              className="rounded-2xl shadow-lg w-full h-96 object-cover"
-            />
+
+          {/* Image */}
+          <div className="relative">
+            <div className="rounded-2xl overflow-hidden shadow-2xl">
+              <img
+                src="https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop"
+                alt="Équipe Assirik Tours"
+                className="w-full h-[500px] object-cover"
+              />
+            </div>
+            
+            {/* Decorative elements */}
+            <div className="absolute -top-4 -right-4 w-24 h-24 bg-gold-500 rounded-full opacity-20"></div>
+            <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-navy-900 rounded-full opacity-10"></div>
           </div>
         </div>
 
-        {/* Values Section */}
-        <div className="mb-20">
-          <h3 className="text-3xl font-bold text-gray-900 text-center mb-12">Nos Valeurs</h3>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {values.map((value, index) => (
-              <div key={index} className="text-center">
-                <div className="bg-orange-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
-                  <value.icon className="h-10 w-10 text-orange-600" />
+        {/* Stats */}
+        <div className="mt-20">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => {
+              const IconComponent = stat.icon;
+              return (
+                <div key={index} className="text-center group">
+                  <div className="flex items-center justify-center w-16 h-16 bg-gold-100 rounded-full mx-auto mb-4 group-hover:bg-gold-500 transition-colors duration-300">
+                    <IconComponent className="h-8 w-8 text-gold-500 group-hover:text-white transition-colors duration-300" />
+                  </div>
+                  <div className="text-3xl font-bold text-navy-900 mb-2">{stat.value}</div>
+                  <div className="text-gray-600 font-medium">{stat.label}</div>
                 </div>
-                <h4 className="text-xl font-bold text-gray-900 mb-3">{value.title}</h4>
-                <p className="text-gray-600 leading-relaxed">{value.description}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        </div>
-
-        {/* Team Section */}
-        <div>
-          <h3 className="text-3xl font-bold text-gray-900 text-center mb-12">Notre Équipe</h3>
-          <div className="grid md:grid-cols-3 gap-8">
-            {team.map((member, index) => (
-              <div key={index} className="bg-white rounded-2xl p-8 shadow-lg text-center">
-                <img
-                  src={member.image}
-                  alt={member.name}
-                  className="w-32 h-32 rounded-full mx-auto mb-6 object-cover"
-                />
-                <h4 className="text-xl font-bold text-gray-900 mb-2">{member.name}</h4>
-                <p className="text-orange-600 font-semibold mb-4">{member.role}</p>
-                <p className="text-gray-600 leading-relaxed">{member.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Mission Statement */}
-        <div className="bg-gradient-to-r from-orange-600 to-red-600 rounded-2xl p-8 lg:p-12 mt-20 text-center text-white">
-          <h3 className="text-3xl lg:text-4xl font-bold mb-6">Notre Mission</h3>
-          <p className="text-xl leading-relaxed max-w-4xl mx-auto text-orange-100">
-            Faire d'Assirik Tours le partenaire de référence pour tous vos projets de voyage, 
-            en vous offrant un service d'excellence, des conseils d'experts et un accompagnement 
-            personnalisé qui transforme chaque voyage en une expérience inoubliable.
-          </p>
         </div>
       </div>
     </section>

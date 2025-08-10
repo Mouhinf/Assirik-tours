@@ -1,68 +1,74 @@
 import React, { useState } from 'react';
-import { Menu, X, MapPin, Phone, Mail } from 'lucide-react';
+import { Menu, X, Phone, Mail } from 'lucide-react';
 
 interface HeaderProps {
-  activeSection: string;
-  setActiveSection: (section: string) => void;
+  currentPage: string;
+  onPageChange: (page: string) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+const Header: React.FC<HeaderProps> = ({ currentPage, onPageChange }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const menuItems = [
     { id: 'accueil', label: 'Accueil' },
-    { id: 'services', label: 'Nos Services' },
-    { id: 'apropos', label: 'À Propos' },
-    { id: 'temoignages', label: 'Témoignages' },
+    { id: 'apropos', label: 'À propos' },
+    { id: 'services', label: 'Services' },
+    { id: 'destinations', label: 'Destinations' },
     { id: 'contact', label: 'Contact' },
   ];
 
-  const handleMenuClick = (sectionId: string) => {
-    setActiveSection(sectionId);
-    setIsMenuOpen(false);
+  const handlePageChange = (pageId: string) => {
+    onPageChange(pageId);
+    setIsMobileMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <header className="bg-white shadow-lg sticky top-0 z-50">
       {/* Top bar with contact info */}
-      <div className="bg-orange-600 text-white py-2 text-sm">
+      <div className="bg-navy-900 text-white py-2 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center md:justify-end space-x-6">
-            <div className="flex items-center">
-              <Phone className="h-4 w-4 mr-1" />
-              <span>+221 77 549 53 14</span>
+          <div className="flex justify-between items-center text-sm">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-2">
+                <Phone className="h-4 w-4" />
+                <span>+221 77 549 53 14</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Mail className="h-4 w-4" />
+                <span>assikirtours@gmail.com</span>
+              </div>
             </div>
-            <div className="flex items-center">
-              <Mail className="h-4 w-4 mr-1" />
-              <span>contact@assirik-tours.sn</span>
+            <div className="text-gold-500">
+              Rue 22 prolongée, Fass Delorme, Dakar, Sénégal
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main navigation */}
+      {/* Main header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
-          <div className="flex items-center">
-            <button
-              onClick={() => setActiveSection('accueil')}
-              className="flex items-center space-x-2 text-2xl font-bold text-orange-600 hover:text-orange-700 transition-colors"
-            >
-              <MapPin className="h-8 w-8" />
-              <span>Assirik Tours</span>
-            </button>
+          {/* Logo */}
+          <div 
+            className="flex items-center cursor-pointer"
+            onClick={() => handlePageChange('accueil')}
+          >
+            <div className="text-2xl font-bold text-navy-900">
+              Assirik<span className="text-gold-500"> Tours</span>
+            </div>
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Menu */}
           <nav className="hidden md:flex space-x-8">
             {menuItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => handleMenuClick(item.id)}
-                className={`px-3 py-2 font-medium transition-colors duration-200 ${
-                  activeSection === item.id
-                    ? 'text-orange-600 border-b-2 border-orange-600'
-                    : 'text-gray-700 hover:text-orange-600'
+                onClick={() => handlePageChange(item.id)}
+                className={`px-3 py-2 text-sm font-medium transition-colors duration-200 ${
+                  currentPage === item.id
+                    ? 'text-gold-500 border-b-2 border-gold-500'
+                    : 'text-navy-900 hover:text-gold-500'
                 }`}
               >
                 {item.label}
@@ -70,36 +76,62 @@ const Header: React.FC<HeaderProps> = ({ activeSection, setActiveSection }) => {
             ))}
           </nav>
 
+          {/* WhatsApp Button */}
+          <div className="hidden md:block">
+            <a
+              href="https://wa.me/221775495314"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-gold-500 text-white px-6 py-2 rounded-full font-medium hover:bg-gold-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              WhatsApp
+            </a>
+          </div>
+
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-700 hover:text-orange-600 transition-colors"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-navy-900 hover:text-gold-500 transition-colors duration-200"
             >
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Navigation */}
-      {isMenuOpen && (
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-gray-200">
-          <nav className="px-4 py-4 space-y-2">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {menuItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => handleMenuClick(item.id)}
-                className={`block w-full text-left px-3 py-2 font-medium transition-colors duration-200 ${
-                  activeSection === item.id
-                    ? 'text-orange-600 bg-orange-50'
-                    : 'text-gray-700 hover:text-orange-600 hover:bg-gray-50'
+                onClick={() => handlePageChange(item.id)}
+                className={`block px-3 py-2 text-base font-medium w-full text-left transition-colors duration-200 ${
+                  currentPage === item.id
+                    ? 'text-gold-500 bg-gold-50'
+                    : 'text-navy-900 hover:text-gold-500 hover:bg-gray-50'
                 }`}
               >
                 {item.label}
               </button>
             ))}
-          </nav>
+            <div className="pt-2">
+              <a
+                href="https://wa.me/221775495314"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block bg-gold-500 text-white px-3 py-2 rounded-lg font-medium text-center hover:bg-gold-600 transition-all duration-200"
+              >
+                Contacter via WhatsApp
+              </a>
+            </div>
+          </div>
         </div>
       )}
     </header>

@@ -1,3 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+* {
+  font-family: 'Poppins', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom color classes */
+.text-navy-900 { color: #001F54; }
+.bg-navy-900 { background-color: #001F54; }
+.border-navy-900 { border-color: #001F54; }
+
+.text-navy-800 { color: #002A6B; }
+.bg-navy-800 { background-color: #002A6B; }
+
+.text-gold-500 { color: #FFD700; }
+.bg-gold-500 { background-color: #FFD700; }
+.border-gold-500 { border-color: #FFD700; }
+
+.text-gold-400 { color: #FFED4E; }
+.bg-gold-400 { background-color: #FFED4E; }
+
+.text-gold-600 { color: #D4AF37; }
+.bg-gold-600 { background-color: #D4AF37; }
+
+.text-gold-800 { color: #B8860B; }
+.bg-gold-800 { background-color: #B8860B; }
+
+.bg-gold-50 { background-color: #FFFDF0; }
+.bg-gold-100 { background-color: #FFF8DC; }
+
+.ring-gold-500 { --tw-ring-color: #FFD700; }
+.focus\:ring-gold-500:focus { --tw-ring-color: #FFD700; }
+
+.hover\:bg-gold-500:hover { background-color: #FFD700; }
+.hover\:bg-gold-600:hover { background-color: #D4AF37; }
+.hover\:text-gold-500:hover { color: #FFD700; }

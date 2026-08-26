@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageHero } from "@/components/site/page-hero";
+import { ContactForm } from "@/components/site/contact-form";
 import { siteConfig } from "@/lib/site-config";
 import { whatsappLink } from "@/lib/whatsapp";
 
@@ -69,7 +70,7 @@ export default function ContactPage() {
             />
           </div>
 
-          {/* Form placeholder — Phase 2 */}
+          {/* Form */}
           <div className="rounded-xl border border-sand-deep bg-sand p-7">
             <h2 className="font-display text-xl font-semibold text-navy">
               Formulaire de devis
@@ -79,28 +80,7 @@ export default function ContactPage() {
               nombre de voyageurs. Un conseiller vous répond sous 24h ouvrées.
             </p>
 
-            <form className="mt-6 space-y-4">
-              <Field label="Votre nom" type="text" placeholder="Prénom Nom" />
-              <Field
-                label="Téléphone ou e-mail"
-                type="text"
-                placeholder="Pour vous recontacter"
-              />
-              <Field
-                label="Votre message"
-                type="textarea"
-                placeholder="Destination souhaitée, dates, voyageurs, budget indicatif…"
-              />
-              <button
-                type="button"
-                className="w-full rounded-full bg-ocean px-5 py-3 text-sm font-semibold text-sand hover:bg-navy transition-colors"
-              >
-                Envoyer ma demande
-              </button>
-              <p className="text-xs text-silver text-center">
-                Ce formulaire sera connecté à notre système de tickets en Phase 2.
-              </p>
-            </form>
+            <ContactForm />
 
             <div className="mt-6 pt-6 border-t border-sand-deep">
               <a
@@ -216,35 +196,4 @@ function Icon({ name }: { name: "pin" | "phone" | "mail" | "clock" }) {
         </svg>
       );
   }
-}
-
-function Field({
-  label,
-  type,
-  placeholder,
-}: {
-  label: string;
-  type: "text" | "textarea";
-  placeholder: string;
-}) {
-  return (
-    <label className="block">
-      <span className="block text-xs font-semibold uppercase tracking-wider text-graphite mb-1.5">
-        {label}
-      </span>
-      {type === "textarea" ? (
-        <textarea
-          rows={4}
-          placeholder={placeholder}
-          className="w-full rounded-lg border border-sand-deep bg-sand-deep/40 px-3 py-2.5 text-sm text-navy placeholder:text-silver focus:border-ocean focus:bg-sand outline-none transition-colors resize-y"
-        />
-      ) : (
-        <input
-          type={type}
-          placeholder={placeholder}
-          className="w-full rounded-lg border border-sand-deep bg-sand-deep/40 px-3 py-2.5 text-sm text-navy placeholder:text-silver focus:border-ocean focus:bg-sand outline-none transition-colors"
-        />
-      )}
-    </label>
-  );
 }

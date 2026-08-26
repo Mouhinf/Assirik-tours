@@ -96,10 +96,52 @@ pnpm dev                 # Serveur de développement
 pnpm build               # Build de production
 pnpm start               # Lancer le build de prod
 pnpm lint                # ESLint
-pnpm prisma studio       # Inspecter la DB
-pnpm prisma migrate dev  # Appliquer les migrations
+
+pnpm db:generate         # Générer le client Prisma
+pnpm db:migrate          # Créer/ajouter une migration
+pnpm db:push             # Push le schema sans migration (dev rapide)
+pnpm db:studio           # Inspecter la DB dans le navigateur
+
+pnpm admin:create <email> <password> [name]
+                        # Créer le premier admin super-admin
+pnpm seed                # Peupler la DB avec des destinations/offres d'exemple
 ```
+
+## Espace admin (`/admin`)
+
+Back-office accessible après authentification. Un seul rôle Phase 1 (`SUPER_ADMIN`) ; RBAC fin en Phase 2.
+
+- `/admin` — Tableau de bord (KPIs, dernières réservations)
+- `/admin/destinations` — CRUD complet des destinations, upload image principale + galerie
+- `/admin/offres` — CRUD des offres/forfaits
+- `/admin/reservations` — Liste des demandes reçues via le formulaire public
+- `/admin/media` — Médiathèque (liste, suppression, copie des public_id Cloudinary)
+- `/admin/parametres` — Infos agence + variables d'environnement attendues
+
+Toutes les pages admin passent par `src/proxy.ts` (ex-middleware) qui redirige vers `/admin/login` si la session est absente.
 
 ## Roadmap Phase 1 → Phase 2
 
 Voir `TODO` interne (à venir) ou les commentaires "Phase 2" dans chaque page.
+
+## Phase 1 — déjà livré
+
+- [x] Site public (11 sections)
+- [x] Auth admin (JWT cookie, bcrypt)
+- [x] CRUD destinations avec upload Cloudinary
+- [x] CRUD offres avec upload Cloudinary
+- [x] Médiathèque (liste + suppression)
+- [x] Formulaire de contact → base de données (apparaît dans `/admin/reservations`)
+- [x] WhatsApp FAB persistant (`wa.me/221775495314`)
+- [x] Schéma Prisma + scripts create-admin + seed
+
+## Phase 2 — à venir
+
+- [ ] Multilingue FR/EN
+- [ ] RBAC fin (3 rôles + 2FA super-admin)
+- [ ] Paiement Wave / Orange Money / carte
+- [ ] Suivi dossiers visa
+- [ ] Génération PDF facture / voucher
+- [ ] Notifications email automatiques
+- [ ] Multiselect destinations ↔ offres
+- [ ] UI Customizer (logo, palette, copy)

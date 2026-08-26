@@ -45,3 +45,11 @@ Thumbs.db
 # Logs
 logs/
 *.log
+
+# Real env files (template .env.example stays tracked)
+.env
+.env*.local
+.env.*.local
+.env.production
+.env.development
+.env*

@@ -1,26 +1,126 @@
 @import "tailwindcss";
 
+/* ============================================================
+   Assirik Tours — Design tokens
+   Palette derived from the logo: rising sun + ocean wave + skyline
+   ============================================================ */
+
+@theme {
+  /* Primary blues (skyline + ocean wave) */
+  --color-navy: #12406b;
+  --color-ocean: #1d6fb8;
+  --color-sky: #4fa8da;
+  --color-mist: #d9ecf7;
+
+  /* Sunrise accents (rising sun) */
+  --color-sunrise-orange: #f5a73b;
+  --color-sunrise-yellow: #ffce54;
+  --color-sunrise-coral: #f07a3d;
+
+  /* Neutrals (sand evokes Senegalese beaches — avoid cold pure white) */
+  --color-sand: #f7f5f0;
+  --color-sand-deep: #ede8de;
+  --color-anthracite: #20242b;
+  --color-graphite: #4a5159;
+  --color-silver: #8a929c;
+
+  /* Semantic aliases — keep names short for clean Tailwind classes */
+  --color-brand: var(--color-ocean);
+  --color-brand-deep: var(--color-navy);
+  --color-brand-soft: var(--color-sky);
+  --color-accent: var(--color-sunrise-orange);
+  --color-accent-warm: var(--color-sunrise-yellow);
+  --color-bg: var(--color-sand);
+  --color-fg: var(--color-anthracite);
+
+  /* Typography */
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
+
+  /* Radii */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  /* Shadows — subtle, never the default "shadow-lg" look */
+  --shadow-soft: 0 1px 2px rgb(18 64 107 / 0.04), 0 4px 12px rgb(18 64 107 / 0.06);
+  --shadow-lift: 0 2px 4px rgb(18 64 107 / 0.06), 0 12px 28px rgb(18 64 107 / 0.08);
+  --shadow-glow: 0 0 0 1px rgb(29 111 184 / 0.15), 0 8px 24px rgb(29 111 184 / 0.12);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --background: var(--color-sand);
+  --foreground: var(--color-anthracite);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.018em;
+  color: var(--color-navy);
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+::selection {
+  background-color: var(--color-ocean);
+  color: var(--color-sand);
+}
+
+/* Focus ring — accessible, on-brand */
+:focus-visible {
+  outline: 2px solid var(--color-ocean);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* Reduce default focus noise on mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Subtle wave divider utility — used between sections */
+.wave-divider {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--color-sand-deep);
+}
+
+/* Container max-width override — feels less cramped than Tailwind default */
+.container-narrow {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .container-narrow {
+    padding-inline: 2rem;
+  }
 }

@@ -1,0 +1,250 @@
+import type { Metadata } from "next";
+import { PageHero } from "@/components/site/page-hero";
+import { siteConfig } from "@/lib/site-config";
+import { whatsappLink } from "@/lib/whatsapp";
+
+export const metadata: Metadata = {
+  title: "Contact",
+  description:
+    "Contacter l'agence Assirik Tours à Dakar : adresse, téléphone, WhatsApp, e-mail. Réponse sous 24h ouvrées.",
+};
+
+export default function ContactPage() {
+  return (
+    <>
+      <PageHero
+        eyebrow="Contact"
+        title="Parlons de votre prochain voyage"
+        description="Un conseiller vous répond — pas un robot, pas un formulaire perdu. Choisissez le canal qui vous arrange."
+      />
+
+      <section className="container-narrow pb-20">
+        <div className="grid lg:grid-cols-[1.1fr_1fr] gap-10">
+          {/* Contact details */}
+          <div className="space-y-8">
+            <ContactBlock
+              icon="pin"
+              title="À l'agence"
+              lines={[
+                siteConfig.address.line1,
+                `${siteConfig.address.line2}, ${siteConfig.address.city}`,
+                siteConfig.address.country,
+              ]}
+            />
+
+            <ContactBlock
+              icon="phone"
+              title="Par téléphone"
+              lines={[
+                `Fixe : ${siteConfig.phones.landline}`,
+                `WhatsApp : ${siteConfig.phones.whatsapp}`,
+              ]}
+              linesAsLinks={[
+                { href: `tel:${siteConfig.phones.landlineTel}`, label: `Fixe : ${siteConfig.phones.landline}` },
+                {
+                  href: whatsappLink("Bonjour Assirik Tours"),
+                  label: `WhatsApp : ${siteConfig.phones.whatsapp}`,
+                  external: true,
+                },
+              ]}
+            />
+
+            <ContactBlock
+              icon="mail"
+              title="Par e-mail"
+              lines={[siteConfig.email]}
+              linesAsLinks={[
+                { href: `mailto:${siteConfig.email}`, label: siteConfig.email },
+              ]}
+            />
+
+            <ContactBlock
+              icon="clock"
+              title="Horaires"
+              lines={[
+                siteConfig.hours.weekdays,
+                siteConfig.hours.saturday,
+                siteConfig.hours.sunday,
+              ]}
+            />
+          </div>
+
+          {/* Form placeholder — Phase 2 */}
+          <div className="rounded-xl border border-sand-deep bg-sand p-7">
+            <h2 className="font-display text-xl font-semibold text-navy">
+              Formulaire de devis
+            </h2>
+            <p className="mt-2 text-sm text-graphite leading-relaxed">
+              Décrivez votre projet — destinations, dates approximatives,
+              nombre de voyageurs. Un conseiller vous répond sous 24h ouvrées.
+            </p>
+
+            <form className="mt-6 space-y-4">
+              <Field label="Votre nom" type="text" placeholder="Prénom Nom" />
+              <Field
+                label="Téléphone ou e-mail"
+                type="text"
+                placeholder="Pour vous recontacter"
+              />
+              <Field
+                label="Votre message"
+                type="textarea"
+                placeholder="Destination souhaitée, dates, voyageurs, budget indicatif…"
+              />
+              <button
+                type="button"
+                className="w-full rounded-full bg-ocean px-5 py-3 text-sm font-semibold text-sand hover:bg-navy transition-colors"
+              >
+                Envoyer ma demande
+              </button>
+              <p className="text-xs text-silver text-center">
+                Ce formulaire sera connecté à notre système de tickets en Phase 2.
+              </p>
+            </form>
+
+            <div className="mt-6 pt-6 border-t border-sand-deep">
+              <a
+                href={whatsappLink(
+                  "Bonjour Assirik Tours, j'aimerais des informations sur un voyage.",
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[#25D366] hover:underline"
+              >
+                Ou écrivez-nous directement sur WhatsApp →
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+/* ---------------------------------------------------------- */
+
+function ContactBlock({
+  icon,
+  title,
+  lines,
+  linesAsLinks,
+}: {
+  icon: "pin" | "phone" | "mail" | "clock";
+  title: string;
+  lines: string[];
+  linesAsLinks?: { href: string; label: string; external?: boolean }[];
+}) {
+  const linesToRender =
+    linesAsLinks ??
+    lines.map(
+      (l): { href: string; label: string; external?: boolean } => ({
+        href: "#",
+        label: l,
+      }),
+    );
+
+  return (
+    <div>
+      <div className="flex items-center gap-3">
+        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-ocean/10 text-ocean">
+          <Icon name={icon} />
+        </span>
+        <h3 className="font-display text-base font-semibold text-navy">
+          {title}
+        </h3>
+      </div>
+      <div className="mt-3 ml-12 space-y-1 text-sm text-graphite">
+        {linesToRender.map((l, i) => (
+          <p key={i}>
+            {l.href === "#" ? (
+              l.label
+            ) : (
+              <a
+                href={l.href}
+                target={l.external ? "_blank" : undefined}
+                rel={l.external ? "noopener noreferrer" : undefined}
+                className="hover:text-ocean transition-colors break-all"
+              >
+                {l.label}
+              </a>
+            )}
+          </p>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Icon({ name }: { name: "pin" | "phone" | "mail" | "clock" }) {
+  const common = {
+    viewBox: "0 0 24 24",
+    width: 18,
+    height: 18,
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true,
+  };
+  switch (name) {
+    case "pin":
+      return (
+        <svg {...common}>
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
+      );
+    case "phone":
+      return (
+        <svg {...common}>
+          <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
+        </svg>
+      );
+    case "mail":
+      return (
+        <svg {...common}>
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="M3 7l9 6 9-6" />
+        </svg>
+      );
+    case "clock":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      );
+  }
+}
+
+function Field({
+  label,
+  type,
+  placeholder,
+}: {
+  label: string;
+  type: "text" | "textarea";
+  placeholder: string;
+}) {
+  return (
+    <label className="block">
+      <span className="block text-xs font-semibold uppercase tracking-wider text-graphite mb-1.5">
+        {label}
+      </span>
+      {type === "textarea" ? (
+        <textarea
+          rows={4}
+          placeholder={placeholder}
+          className="w-full rounded-lg border border-sand-deep bg-sand-deep/40 px-3 py-2.5 text-sm text-navy placeholder:text-silver focus:border-ocean focus:bg-sand outline-none transition-colors resize-y"
+        />
+      ) : (
+        <input
+          type={type}
+          placeholder={placeholder}
+          className="w-full rounded-lg border border-sand-deep bg-sand-deep/40 px-3 py-2.5 text-sm text-navy placeholder:text-silver focus:border-ocean focus:bg-sand outline-none transition-colors"
+        />
+      )}
+    </label>
+  );
+}

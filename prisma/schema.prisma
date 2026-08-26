@@ -1,0 +1,198 @@
+// Assirik Tours — database schema
+//
+// Phase 1 MVP scope:
+//   - Destination catalogue (Sénégal + international)
+//   - Offres/Forfaits with pricing and availability
+//   - Réservations from the public site
+//   - Clients (linked to reservations)
+//   - Admin users (single role for now — RBAC in Phase 2)
+//
+// Storage: PostgreSQL via Neon (free tier) or Supabase.
+// File uploads (visa docs, photos): Cloudinary (signed URLs).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Catalogue ─────────────────────────────────────────────────────────
+
+enum DestinationRegion {
+  DAKAR
+  NIAYES
+  PETITE_COTE
+  CASAMANCE
+  SENEGAL_ORIENTAL
+  SAINT_LOUIS
+  AFRIQUE_OUEST
+  EUROPE
+  MOYEN_ORIENT
+  ASIE
+  AMERIQUE
+}
+
+model Destination {
+  id          String              @id @default(cuid())
+  slug        String              @unique
+  title       String
+  region      DestinationRegion
+  summary     String
+  description String?             @db.Text
+  heroImageId String?             // Cloudinary public_id
+  gallery     String[]            @default([]) // Cloudinary public_ids
+  published   Boolean             @default(false)
+  featured    Boolean             @default(false)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  offers Offer[]
+
+  @@index([region])
+  @@index([published, featured])
+}
+
+// ── Offres ─────────────────────────────────────────────────────────────
+
+enum OfferKind {
+  SEJOUR
+  CIRCUIT
+  SUR_MESURE
+  OMRA
+  HAJJ
+  BILLETERIE
+}
+
+model Offer {
+  id            String      @id @default(cuid())
+  slug          String      @unique
+  title         String
+  kind          OfferKind
+  summary       String
+  description   String?     @db.Text
+  priceFCFA     Int         // in FCFA, integer (no decimals)
+  durationDays  Int?
+  maxGuests     Int?
+  coverImageId  String?
+  gallery       String[]    @default([])
+  published     Boolean     @default(false)
+  startDate     DateTime?
+  endDate       DateTime?
+
+  destinationId String
+  destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Restrict)
+
+  reservations  Reservation[]
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([destinationId, published])
+  @@index([kind, published])
+}
+
+// ── Réservations ──────────────────────────────────────────────────────
+
+enum ReservationStatus {
+  NOUVELLE
+  EN_COURS
+  CONFIRMEE
+  PAYEE
+  ANNULEE
+  TERMINEE
+}
+
+model Client {
+  id          String        @id @default(cuid())
+  firstName   String
+  lastName    String
+  email       String        @unique
+  phone       String
+  notes       String?       @db.Text
+  createdAt   DateTime      @default(now())
+
+  reservations Reservation[]
+}
+
+model Reservation {
+  id            String            @id @default(cuid())
+  reference     String            @unique // e.g. "AT-2026-00042"
+  status        ReservationStatus @default(NOUVELLE)
+
+  // Snapshot of the trip at booking time
+  travelers     Int               @default(1)
+  startDate     DateTime?
+  totalFCFA     Int
+  notes         String?           @db.Text
+
+  clientId      String
+  client        Client            @relation(fields: [clientId], references: [id], onDelete: Restrict)
+
+  offerId       String?
+  offer         Offer?            @relation(fields: [offerId], references: [id], onDelete: SetNull)
+
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ── Auth (admin) ──────────────────────────────────────────────────────
+
+enum AdminRole {
+  SUPER_ADMIN
+  AGENT
+  COMPTABLE
+}
+
+model AdminUser {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  name         String
+  role         AdminRole  @default(AGENT)
+  twoFactorEnabled Boolean @default(false)
+  lastLoginAt  DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+// ── Visa dossiers (Phase 2 — structure in place) ───────────────────────
+
+enum VisaStatus {
+  BROUILLON
+  DOCUMENTS_MANQUANTS
+  EN_TRAITEMENT
+  ACCEPTE
+  REFUSE
+}
+
+model VisaDossier {
+  id            String      @id @default(cuid())
+  reference     String      @unique
+  destination   String      // e.g. "Schengen", "USA", "Canada"
+  status        VisaStatus  @default(BROUILLON)
+  deadline      DateTime?
+  documents     Json        @default("[]") // [{name, cloudinaryId, uploadedAt}]
+  clientId      String
+  notes         String?     @db.Text
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// ── Témoignages ───────────────────────────────────────────────────────
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  author    String
+  city      String?
+  content   String   @db.Text
+  rating    Int      @default(5)
+  tripSlug  String?
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

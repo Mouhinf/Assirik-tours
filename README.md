@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Assirik Tours
 
-## Getting Started
+Site web public + back-office de l'agence de voyages **Assirik Tours**, basée à Dakar (Sénégal).
 
-First, run the development server:
+> Phase 1 MVP : site public + back-office minimum (réservations, offres, 1 rôle admin).
+> Phase 2 : RBAC fin, multilingue, paiement en ligne, modules visa & CRM.
+
+---
+
+## Stack
+
+- **Next.js 16** (App Router, TypeScript)
+- **React 19**
+- **Tailwind CSS v4** (config via `@theme` dans `globals.css`)
+- **Prisma + PostgreSQL** (Neon / Supabase)
+- **Cloudinary** pour les médias
+- **WhatsApp** via lien `wa.me` (zéro infrastructure — voir `src/lib/whatsapp.ts`)
+
+## Démarrer
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Installer les dépendances
+pnpm install
+
+# Copier le fichier d'env et remplir les valeurs
+cp .env.example .env.local
+
+# Préparer la base (une fois DATABASE_URL configuré)
+pnpm prisma migrate dev
+
+# Lancer le serveur de dev
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Le site est accessible sur [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+prisma/
+  schema.prisma          # Schéma DB (Destinations, Offres, Réservations, …)
+src/
+  app/                   # Routes (App Router)
+    layout.tsx           # Layout racine — nav + footer + WhatsApp FAB
+    page.tsx             # Accueil
+    destinations/        # Catalogue destinations
+    offres/              # Offres & forfaits
+    billetterie/         # Vols
+    services/            # Visa, hôtel, transfert, …
+    a-propos/            # Histoire & équipe
+    blog/                # Guides pratiques
+    galerie/             # Photos
+    faq/                 # Questions fréquentes
+    contact/             # Coordonnées + formulaire
+    espace-client/       # Auth Phase 2
+  components/
+    brand/               # Logo, wave-divider (motif de marque)
+    site/                # nav, footer, whatsApp-fab, page-hero
+  lib/
+    site-config.ts       # Source unique : nom, contact, navigation
+    utils.ts             # cn(), formatFCFA(), helpers
+    whatsapp.ts          # Construction des liens wa.me
+    prisma.ts            # Client Prisma singleton
+```
 
-## Learn More
+## Design tokens
 
-To learn more about Next.js, take a look at the following resources:
+Toutes les couleurs de la marque sont définies dans `src/app/globals.css` via `@theme`. Utiliser les classes Tailwind générées :
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```tsx
+<div className="bg-sand text-navy">
+  <h2 className="text-ocean">Titre</h2>
+  <span className="bg-sunrise-orange/15 text-sunrise-orange">Tag</span>
+</div>
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Token | Hex | Usage |
+| --- | --- | --- |
+| `navy` | `#12406B` | Texte, headers |
+| `ocean` | `#1D6FB8` | CTA, liens, marque |
+| `sky` | `#4FA8DA` | Accents, hover |
+| `sunrise-orange` | `#F5A73B` | Accents chaleureux |
+| `sunrise-yellow` | `#FFCE54` | Highlights |
+| `sand` | `#F7F5F0` | Fond principal |
+| `anthracite` | `#20242B` | Texte corps |
 
-## Deploy on Vercel
+## Polices
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Titres** : Space Grotesk (Google Fonts, libre)
+- **Corps** : Plus Jakarta Sans (Google Fonts, libre)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Commandes utiles
+
+```bash
+pnpm dev                 # Serveur de développement
+pnpm build               # Build de production
+pnpm start               # Lancer le build de prod
+pnpm lint                # ESLint
+pnpm prisma studio       # Inspecter la DB
+pnpm prisma migrate dev  # Appliquer les migrations
+```
+
+## Roadmap Phase 1 → Phase 2
+
+Voir `TODO` interne (à venir) ou les commentaires "Phase 2" dans chaque page.

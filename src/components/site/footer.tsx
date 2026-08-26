@@ -9,8 +9,8 @@ export function SiteFooter() {
     <footer className="bg-navy text-mist mt-20">
       <div className="container-narrow py-14 grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div>
-          <BrandLogo className="brightness-0 invert-0" />
-          <p className="mt-4 text-sm leading-relaxed text-mist/80 max-w-xs">
+          <BrandLogo tone="dark" />
+          <p className="mt-4 text-sm leading-relaxed text-mist/85 max-w-xs">
             {siteConfig.description}
           </p>
         </div>
@@ -24,7 +24,7 @@ export function SiteFooter() {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className="text-mist/80 hover:text-sunrise-yellow transition-colors"
+                  className="text-mist/85 hover:text-sunrise-yellow transition-colors"
                 >
                   {item.label}
                 </Link>
@@ -37,7 +37,7 @@ export function SiteFooter() {
           <h3 className="font-display text-sm font-semibold text-sand uppercase tracking-wider">
             Contact
           </h3>
-          <ul className="mt-4 space-y-2 text-sm text-mist/80">
+          <ul className="mt-4 space-y-2 text-sm text-mist/85">
             <li>
               <a
                 href={`tel:${siteConfig.phones.landlineTel}`}
@@ -64,7 +64,7 @@ export function SiteFooter() {
                 {siteConfig.email}
               </a>
             </li>
-            <li className="text-mist/70 pt-2 leading-relaxed">
+            <li className="text-mist/75 pt-2 leading-relaxed">
               {siteConfig.address.line1}
               <br />
               {siteConfig.address.line2}, {siteConfig.address.city}
@@ -76,16 +76,16 @@ export function SiteFooter() {
           <h3 className="font-display text-sm font-semibold text-sand uppercase tracking-wider">
             Horaires
           </h3>
-          <ul className="mt-4 space-y-2 text-sm text-mist/80">
+          <ul className="mt-4 space-y-2 text-sm text-mist/85">
             <li>{siteConfig.hours.weekdays}</li>
             <li>{siteConfig.hours.saturday}</li>
-            <li className="text-mist/60">{siteConfig.hours.sunday}</li>
+            <li className="text-mist/70">{siteConfig.hours.sunday}</li>
           </ul>
         </div>
       </div>
 
       <div className="border-t border-white/10">
-        <div className="container-narrow py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-mist/60">
+        <div className="container-narrow py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-mist/70">
           <p>
             © {year} {siteConfig.name}. Tous droits réservés.
           </p>

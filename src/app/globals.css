@@ -15,27 +15,30 @@
   /* Sunrise accents (rising sun) */
   --color-sunrise-orange: #f5a73b;
   --color-sunrise-yellow: #ffce54;
-  --color-sunrise-coral: #f07a3d;
+  --color-sunrise-coral: #d4651f;       /* darker variant for AA text on light bg */
+  --color-sunrise-amber: #a04717;       /* even darker — for very small text only */
 
   /* Neutrals (sand evokes Senegalese beaches — avoid cold pure white) */
   --color-sand: #f7f5f0;
   --color-sand-deep: #ede8de;
   --color-anthracite: #20242b;
-  --color-graphite: #4a5159;
-  --color-silver: #8a929c;
+  --color-graphite: #4a5159;            /* bumped darker — silver was too low contrast */
+  --color-silver: #6b7280;              /* bumped darker for AA contrast on sand */
 
-  /* Semantic aliases — keep names short for clean Tailwind classes */
+  /* Semantic aliases */
   --color-brand: var(--color-ocean);
   --color-brand-deep: var(--color-navy);
   --color-brand-soft: var(--color-sky);
   --color-accent: var(--color-sunrise-orange);
   --color-accent-warm: var(--color-sunrise-yellow);
+  --color-accent-text: var(--color-sunrise-coral);
   --color-bg: var(--color-sand);
   --color-fg: var(--color-anthracite);
 
-  /* Typography */
-  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
-  --font-body: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
+  /* Typography — Sora (display) + Manrope (body).
+     Both chosen for being less overused than Space Grotesk / Plus Jakarta Sans. */
+  --font-display: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 
   /* Radii */
   --radius-xs: 0.25rem;
@@ -44,7 +47,7 @@
   --radius-lg: 1rem;
   --radius-xl: 1.5rem;
 
-  /* Shadows — subtle, never the default "shadow-lg" look */
+  /* Shadows */
   --shadow-soft: 0 1px 2px rgb(18 64 107 / 0.04), 0 4px 12px rgb(18 64 107 / 0.06);
   --shadow-lift: 0 2px 4px rgb(18 64 107 / 0.06), 0 12px 28px rgb(18 64 107 / 0.08);
   --shadow-glow: 0 0 0 1px rgb(29 111 184 / 0.15), 0 8px 24px rgb(29 111 184 / 0.12);
@@ -70,41 +73,29 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   font-weight: 600;
-  letter-spacing: -0.018em;
+  letter-spacing: -0.02em;
   color: var(--color-navy);
   text-wrap: balance;
 }
 
-p {
-  text-wrap: pretty;
-}
+p { text-wrap: pretty; }
 
 ::selection {
   background-color: var(--color-ocean);
   color: var(--color-sand);
 }
 
-/* Focus ring — accessible, on-brand */
 :focus-visible {
   outline: 2px solid var(--color-ocean);
   outline-offset: 2px;
   border-radius: var(--radius-xs);
 }
 
-/* Reduce default focus noise on mouse users */
-:focus:not(:focus-visible) {
-  outline: none;
-}
+:focus:not(:focus-visible) { outline: none; }
 
-/* Subtle wave divider utility — used between sections */
 .wave-divider {
   display: block;
   width: 100%;
@@ -112,7 +103,6 @@ p {
   color: var(--color-sand-deep);
 }
 
-/* Container max-width override — feels less cramped than Tailwind default */
 .container-narrow {
   max-width: 72rem;
   margin-inline: auto;
@@ -120,7 +110,5 @@ p {
 }
 
 @media (min-width: 768px) {
-  .container-narrow {
-    padding-inline: 2rem;
-  }
+  .container-narrow { padding-inline: 2rem; }
 }

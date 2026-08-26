@@ -2,7 +2,10 @@ import { cn } from "@/lib/utils";
 
 /**
  * Section header used by all public pages.
- * Eyebrow → title → subtitle, with an optional wave accent at the bottom.
+ *
+ * Optional `eyebrow` text is rendered inline as a label BEFORE the H1, not
+ * as a separate kicker pill above it (impeccable flagged the kicker
+ * pattern as an AI tell). When present, it sits naturally with the title.
  */
 export function PageHero({
   eyebrow,
@@ -11,7 +14,7 @@ export function PageHero({
   align = "left",
   children,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   description: string;
   align?: "left" | "center";
@@ -34,11 +37,17 @@ export function PageHero({
           align === "center" && "text-center",
         )}
       >
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-ocean">
-          {eyebrow}
-        </p>
-        <h1 className="mt-3 max-w-3xl font-display text-4xl md:text-5xl font-semibold text-navy leading-[1.08] text-balance">
-          {title}
+        <h1 className="max-w-3xl font-display text-4xl md:text-5xl font-semibold text-navy leading-[1.05] text-balance">
+          {eyebrow ? (
+            <>
+              <span className="block text-base font-medium text-graphite tracking-normal mb-3">
+                {eyebrow}
+              </span>
+              {title}
+            </>
+          ) : (
+            title
+          )}
         </h1>
         <p
           className={cn(
@@ -71,7 +80,7 @@ export function InProgressBlock({
     <section className="container-narrow pb-20">
       <div className="rounded-xl border border-sand-deep bg-sand p-8 md:p-10">
         <div className="flex items-start gap-4">
-          <div className="hidden sm:inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sunrise-orange/15 text-sunrise-orange">
+          <div className="hidden sm:inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sunrise-coral/15 text-sunrise-coral">
             <svg
               viewBox="0 0 24 24"
               width="20"

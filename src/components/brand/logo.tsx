@@ -3,16 +3,33 @@ import { siteConfig } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 
 /**
- * Inline SVG logo — derived from the brief description (rising sun, skyline, wave).
- * Renders crisply at any size, no extra HTTP request, no FOUT.
+ * Brand logo (inline SVG so it renders crisply without an HTTP request).
+ *
+ * `tone="light"` (default) — for use on light backgrounds (sand).
+ * `tone="dark"` — for use on dark backgrounds (footer navy).
+ *   In dark tone, the SVG fills are pre-set to the light/mist palette and
+ *   the wordmark uses the same — no CSS filters required.
  */
 export function BrandLogo({
   className,
   variant = "full",
+  tone = "light",
 }: {
   className?: string;
   variant?: "full" | "mark";
+  tone?: "light" | "dark";
 }) {
+  const isDark = tone === "dark";
+  const gradStops = isDark
+    ? { sunA: "#FFCE54", sunB: "#F5A73B" } // unchanged on dark
+    : { sunA: "#FFCE54", sunB: "#F5A73B" };
+  const buildings = isDark
+    ? ["#4FA8DA", "#D9ECF7", "#4FA8DA", "#D9ECF7", "#4FA8DA", "#D9ECF7"] // alternating mist
+    : ["#1D6FB8", "#12406B", "#1D6FB8", "#12406B", "#1D6FB8", "#12406B"];
+  const wave = isDark ? ["#FFCE54", "#FFCE54"] : ["#1D6FB8", "#4FA8DA"];
+  const wordmarkClass = isDark ? "text-sand" : "text-navy";
+  const wordmarkAccentClass = isDark ? "text-sunrise-yellow" : "text-ocean";
+
   return (
     <Link
       href="/"
@@ -31,24 +48,21 @@ export function BrandLogo({
       >
         <defs>
           <linearGradient id="ass-sun" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#FFCE54" />
-            <stop offset="100%" stopColor="#F5A73B" />
+            <stop offset="0%" stopColor={gradStops.sunA} />
+            <stop offset="100%" stopColor={gradStops.sunB} />
           </linearGradient>
           <linearGradient id="ass-wave" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#1D6FB8" />
-            <stop offset="100%" stopColor="#4FA8DA" />
+            <stop offset="0%" stopColor={wave[0]} />
+            <stop offset="100%" stopColor={wave[1]} />
           </linearGradient>
         </defs>
-        {/* Rising sun */}
         <circle cx="20" cy="18" r="7" fill="url(#ass-sun)" />
-        {/* Skyline — stepped buildings (left to right) */}
-        <rect x="6" y="22" width="4" height="9" fill="#1D6FB8" />
-        <rect x="11" y="19" width="4" height="12" fill="#12406B" />
-        <rect x="16" y="16" width="4" height="15" fill="#1D6FB8" />
-        <rect x="21" y="20" width="4" height="11" fill="#12406B" />
-        <rect x="26" y="23" width="4" height="8" fill="#1D6FB8" />
-        <rect x="31" y="25" width="3" height="6" fill="#12406B" />
-        {/* Wave */}
+        <rect x="6" y="22" width="4" height="9" fill={buildings[0]} />
+        <rect x="11" y="19" width="4" height="12" fill={buildings[1]} />
+        <rect x="16" y="16" width="4" height="15" fill={buildings[2]} />
+        <rect x="21" y="20" width="4" height="11" fill={buildings[3]} />
+        <rect x="26" y="23" width="4" height="8" fill={buildings[4]} />
+        <rect x="31" y="25" width="3" height="6" fill={buildings[5]} />
         <path
           d="M2 34 Q 10 30, 20 34 T 38 34"
           fill="none"
@@ -59,8 +73,13 @@ export function BrandLogo({
       </svg>
 
       {variant === "full" && (
-        <span className="font-display text-[1.05rem] font-semibold tracking-tight text-navy leading-none">
-          Assirik<span className="text-ocean"> Tours</span>
+        <span
+          className={cn(
+            "font-display text-[1.05rem] font-semibold tracking-tight leading-none",
+            wordmarkClass,
+          )}
+        >
+          Assirik<span className={wordmarkAccentClass}> Tours</span>
         </span>
       )}
     </Link>

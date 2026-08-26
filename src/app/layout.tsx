@@ -1,21 +1,26 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Plus_Jakarta_Sans } from "next/font/google";
+import { Sora, Manrope } from "next/font/google";
 import { SiteNav } from "@/components/site/nav";
 import { SiteFooter } from "@/components/site/footer";
 import { WhatsAppFab } from "@/components/site/whatsapp-fab";
+import { organizationJsonLd, websiteJsonLd } from "@/lib/seo/jsonld";
 import "./globals.css";
 
-const display = Space_Grotesk({
-  variable: "--font-space-grotesk",
+// Distinctive pairing — not Inter, not Plus Jakarta, not Space Grotesk.
+// Sora is a geometric sans with a confident, slightly retro character
+// (chosen for headings — feels editorial, not "another AI SaaS").
+// Manrope is a clean readable sans for body copy, less overused.
+const display = Sora({
+  variable: "--font-sora",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-const body = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta-sans",
+const body = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -36,9 +41,13 @@ export const metadata: Metadata = {
     "Omra Sénégal",
     "séjour Casamance",
     "Lac Rose excursion",
+    "île de Gorée",
   ],
   authors: [{ name: "Assirik Tours" }],
   creator: "Assirik Tours",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     type: "website",
     locale: "fr_SN",
@@ -47,6 +56,14 @@ export const metadata: Metadata = {
     title: "Assirik Tours — Agence de voyages à Dakar",
     description:
       "Vols, visas et séjours sur mesure depuis Dakar. Sénégal, Omra, Maroc, Turquie, Dubaï, Europe.",
+    images: [
+      {
+        url: "/og-default.png",
+        width: 1200,
+        height: 630,
+        alt: "Assirik Tours — Agence de voyages à Dakar",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -57,6 +74,12 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 
@@ -67,6 +90,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${display.variable} ${body.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-sand text-anthracite font-body">
+        {/* Structured data — TravelAgency organization schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
         <SiteNav />
         <main className="flex-1">{children}</main>
         <SiteFooter />

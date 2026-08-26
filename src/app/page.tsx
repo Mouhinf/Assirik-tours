@@ -63,18 +63,45 @@ const sampleOffers = [
     duration: "2 jours / 1 nuit",
     from: "À partir de 85 000 FCFA",
     tag: "Senegal",
+    tagTone: "sunrise" as const,
   },
   {
     title: "Circuit Casamance authentique",
     duration: "7 jours / 6 nuits",
     from: "À partir de 540 000 FCFA",
     tag: "Senegal",
+    tagTone: "sunrise" as const,
   },
   {
     title: "Omra Ramadan — formule accompagnée",
     duration: "10 jours",
     from: "Sur devis",
     tag: "Omra",
+    tagTone: "ocean" as const,
+  },
+];
+
+const testimonials = [
+  {
+    quote:
+      "Tout a été fluide du devis au retour. Mon conseiller m'a même rappelé un dimanche pour régler un détail sur le visa Schengen.",
+    author: "Aïssatou D.",
+    trip: "Séjour en famille — Lac Rose + Gorée",
+    initials: "AD",
+  },
+  {
+    quote:
+      "Omra Ramadan organisée de A à Z. Les hôtels étaient mieux que ce qu'on imaginait, et le contact sur place était joignable à toute heure.",
+    author: "Mamadou S.",
+    trip: "Omra Ramadan 2025",
+    initials: "MS",
+  },
+  {
+    quote:
+      "Troisième voyage réservé chez Assirik et toujours aussi satisfait. La vraie différence, c'est qu'on traite avec des gens qui connaissent le pays.",
+    author: "Fatou N.",
+    trip: "Week-end à Saly",
+    initials: "FN",
   },
 ];
 
@@ -87,33 +114,28 @@ export default function HomePage() {
     <>
       {/* ── Hero ──────────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
-        {/* Atmospheric background — sunrise gradient + wave SVG */}
         <div
           aria-hidden
           className="absolute inset-0 -z-10"
           style={{
             background:
-              "linear-gradient(180deg, #F7F5F0 0%, #FFF6E2 35%, #F7F5F0 100%)",
+              "linear-gradient(180deg, #F7F5F0 0%, #FFF6E2 38%, #F7F5F0 100%)",
           }}
         />
-        <SunburstMotif className="absolute -top-32 -right-32 -z-10 opacity-60" />
-        <WaveBackdrop className="absolute inset-x-0 bottom-0 -z-10 h-48 opacity-70" />
+        <SunburstMotif className="absolute -top-32 -right-32 -z-10 opacity-50" />
+        <WaveBackdrop className="absolute inset-x-0 bottom-0 -z-10 h-48 opacity-65" />
 
         <div className="container-narrow pt-16 pb-32 md:pt-24 md:pb-44">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-ocean">
-            Agence de voyages · Dakar
-          </p>
-
-          <h1 className="mt-4 max-w-3xl font-display text-4xl md:text-6xl font-semibold text-navy text-balance leading-[1.05]">
+          <h1 className="max-w-3xl font-display text-4xl md:text-[5.25rem] font-semibold text-navy text-balance leading-[1.02] tracking-[-0.025em]">
             Du rêve au billet d'avion,
             <br className="hidden md:block" />
             <span className="text-ocean">on s'occupe de tout.</span>
           </h1>
 
-          <p className="mt-6 max-w-2xl text-lg text-graphite leading-relaxed">
-            Vols, visas et séjours sur mesure depuis le Sénégal. Une équipe
-            basée à Dakar qui connaît le terrain et qui vous rappelle
-            rapidement — pas dans trois jours.
+          <p className="mt-7 max-w-2xl text-lg md:text-xl text-graphite leading-relaxed">
+            Vols, visas et séjours sur mesure depuis le Sénégal. Une équipe basée
+            à Dakar qui connaît le terrain et qui vous rappelle rapidement —
+            pas dans trois jours.
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-3">
@@ -136,7 +158,6 @@ export default function HomePage() {
             </a>
           </div>
 
-          {/* Quick search — visual scaffold */}
           <div className="mt-14 max-w-4xl">
             <SearchBox />
           </div>
@@ -166,11 +187,13 @@ export default function HomePage() {
 
       {/* ── Featured destinations ──────────────────────────────── */}
       <section className="container-narrow">
-        <SectionHeader
-          eyebrow="Destinations phares"
-          title="Là où on vous emmène en premier"
-          subtitle="Quatre classiques du Sénégal, choisis pour leur valeur et leur accessibilité depuis Dakar."
-        />
+        <h2 className="font-display text-3xl md:text-[2.5rem] font-semibold text-navy leading-[1.08] text-balance">
+          Là où on vous emmène en premier.
+        </h2>
+        <p className="mt-3 max-w-xl text-graphite leading-relaxed">
+          Quatre classiques du Sénégal, choisis pour leur valeur et leur
+          accessibilité depuis Dakar.
+        </p>
 
         <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {featuredDestinations.map((d) => (
@@ -192,11 +215,9 @@ export default function HomePage() {
       <section className="container-narrow mt-28">
         <div className="grid lg:grid-cols-[1fr_1.4fr] gap-12 items-start">
           <div>
-            <SectionHeader
-              eyebrow="Pourquoi Assirik"
-              title="Trois raisons qui nous séparent d'un comparateur"
-              align="left"
-            />
+            <h2 className="font-display text-3xl md:text-[2.5rem] font-semibold text-navy leading-[1.08] text-balance">
+              Trois raisons qui nous séparent d'un comparateur.
+            </h2>
           </div>
 
           <ul className="grid sm:grid-cols-3 gap-6">
@@ -204,7 +225,7 @@ export default function HomePage() {
               <li key={p.title} className="relative pl-10">
                 <span
                   aria-hidden
-                  className="absolute left-0 top-0 inline-flex h-7 w-7 items-center justify-center rounded-full bg-sunrise-orange/15 text-sunrise-orange font-display font-semibold"
+                  className="absolute left-0 top-0 inline-flex h-7 w-7 items-center justify-center rounded-full bg-sunrise-coral/15 text-sunrise-coral font-display font-semibold"
                 >
                   {i + 1}
                 </span>
@@ -222,11 +243,9 @@ export default function HomePage() {
 
       {/* ── Offres du moment ────────────────────────────────────── */}
       <section className="container-narrow mt-28">
-        <SectionHeader
-          eyebrow="En ce moment"
-          title="Quelques idées de voyage"
-          subtitle="Sélection non exhaustive — toutes nos offres sont ajustables en dates et en prestations."
-        />
+        <h2 className="font-display text-3xl md:text-[2.5rem] font-semibold text-navy leading-[1.08] text-balance">
+          Quelques idées de voyage, ajustables en dates et en budget.
+        </h2>
 
         <div className="mt-10 grid md:grid-cols-3 gap-5">
           {sampleOffers.map((offer) => (
@@ -234,7 +253,14 @@ export default function HomePage() {
               key={offer.title}
               className="group flex flex-col rounded-xl border border-sand-deep bg-sand p-6 transition-all hover:border-ocean/40 hover:shadow-soft"
             >
-              <span className="inline-flex w-fit items-center rounded-full bg-sunrise-orange/15 px-2.5 py-1 text-xs font-semibold text-sunrise-orange">
+              <span
+                className={cn(
+                  "inline-flex w-fit items-center rounded-full px-2.5 py-1 text-xs font-semibold",
+                  offer.tagTone === "sunrise"
+                    ? "bg-sunrise-coral/12 text-sunrise-coral"
+                    : "bg-ocean/12 text-ocean",
+                )}
+              >
                 {offer.tag}
               </span>
               <h3 className="mt-4 font-display text-lg font-semibold text-navy">
@@ -255,12 +281,54 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── Témoignages ─────────────────────────────────────────── */}
+      <section className="container-narrow mt-28">
+        <h2 className="font-display text-3xl md:text-[2.5rem] font-semibold text-navy leading-[1.08] text-balance">
+          Ce qu'ils en disent.
+        </h2>
+        <p className="mt-3 max-w-xl text-graphite leading-relaxed">
+          Une sélection de retours récents — vérifiables sur demande.
+        </p>
+
+        <div className="mt-10 grid md:grid-cols-3 gap-5">
+          {testimonials.map((t) => (
+            <figure
+              key={t.author}
+              className="flex flex-col rounded-xl bg-sand border border-sand-deep p-6"
+            >
+              <svg
+                aria-hidden
+                viewBox="0 0 32 32"
+                width="28"
+                height="28"
+                fill="currentColor"
+                className="text-sunrise-coral/35"
+              >
+                <path d="M9 8c-3.3 0-6 2.7-6 6v10h10V14H7c0-1.1.9-2 2-2V8zm14 0c-3.3 0-6 2.7-6 6v10h10V14h-6c0-1.1.9-2 2-2V8z" />
+              </svg>
+              <blockquote className="mt-3 text-sm text-graphite leading-relaxed flex-1">
+                {t.quote}
+              </blockquote>
+              <figcaption className="mt-5 flex items-center gap-3">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-ocean/12 text-ocean text-xs font-semibold font-display">
+                  {t.initials}
+                </span>
+                <div className="text-sm">
+                  <p className="font-semibold text-navy">{t.author}</p>
+                  <p className="text-graphite">{t.trip}</p>
+                </div>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+
       {/* ── CTA band ───────────────────────────────────────────── */}
       <section className="container-narrow mt-28">
         <div className="relative overflow-hidden rounded-2xl bg-navy p-10 md:p-14 text-sand">
           <SunburstMotif className="absolute -top-12 -right-12 opacity-20" />
           <div className="relative max-w-2xl">
-            <h2 className="font-display text-3xl md:text-4xl font-semibold text-sand text-balance">
+            <h2 className="font-display text-3xl md:text-4xl font-semibold text-sand text-balance leading-[1.08]">
               Un voyage en tête ? On vous rappelle dans la journée.
             </h2>
             <p className="mt-4 text-mist/85 leading-relaxed">
@@ -297,37 +365,6 @@ export default function HomePage() {
 /* Local sub-components                                          */
 /* ------------------------------------------------------------ */
 
-function SectionHeader({
-  eyebrow,
-  title,
-  subtitle,
-  align = "center",
-}: {
-  eyebrow: string;
-  title: string;
-  subtitle?: string;
-  align?: "left" | "center";
-}) {
-  return (
-    <header
-      className={cn(
-        "max-w-2xl",
-        align === "center" && "mx-auto text-center",
-      )}
-    >
-      <p className="text-sm font-semibold uppercase tracking-[0.16em] text-sunrise-orange">
-        {eyebrow}
-      </p>
-      <h2 className="mt-3 font-display text-3xl md:text-[2.5rem] font-semibold text-navy leading-[1.1] text-balance">
-        {title}
-      </h2>
-      {subtitle && (
-        <p className="mt-3 text-graphite leading-relaxed">{subtitle}</p>
-      )}
-    </header>
-  );
-}
-
 function DestinationCard({
   slug,
   title,
@@ -344,7 +381,7 @@ function DestinationCard({
         aria-hidden
         className={cn(
           "aspect-[4/3] relative overflow-hidden",
-          accent === "sunrise-orange" && "bg-gradient-to-br from-sunrise-yellow/60 to-sunrise-orange/40",
+          accent === "sunrise-orange" && "bg-gradient-to-br from-sunrise-yellow/55 to-sunrise-orange/40",
           accent === "sky" && "bg-gradient-to-br from-mist to-sky/50",
           accent === "ocean" && "bg-gradient-to-br from-ocean/15 to-sky/30",
           accent === "sunrise-yellow" && "bg-gradient-to-br from-sunrise-yellow/40 to-sunrise-orange/30",
@@ -353,7 +390,7 @@ function DestinationCard({
         <PhotoPlaceholder label={`Photo · ${title}`} />
       </div>
       <div className="p-5">
-        <p className="text-xs uppercase tracking-wider text-silver font-semibold">
+        <p className="text-xs uppercase tracking-wider text-graphite font-semibold">
           {region}
         </p>
         <h3 className="mt-1.5 font-display text-lg font-semibold text-navy group-hover:text-ocean transition-colors">
@@ -381,7 +418,7 @@ function SearchBox() {
           Rechercher
         </button>
       </div>
-      <p className="mt-2 px-1 text-xs text-silver">
+      <p className="mt-2 px-1 text-xs text-graphite">
         Recherche indicative — confirmation par un conseiller sous 24h.
       </p>
     </div>
@@ -399,13 +436,13 @@ function SearchField({
 }) {
   return (
     <label className="flex flex-col rounded-lg bg-sand-deep/40 px-3 py-2 hover:bg-sand-deep transition-colors">
-      <span className="text-[0.68rem] font-semibold uppercase tracking-wider text-silver">
+      <span className="text-[0.75rem] font-semibold uppercase tracking-wider text-graphite">
         {label}
       </span>
       <input
         type={type}
         placeholder={placeholder}
-        className="mt-0.5 bg-transparent text-sm text-navy placeholder:text-silver/80 outline-none"
+        className="mt-0.5 bg-transparent text-sm text-navy placeholder:text-silver outline-none"
       />
     </label>
   );

@@ -2,77 +2,100 @@
 
 Site web public + back-office de l'agence de voyages **Assirik Tours**, basée à Dakar (Sénégal).
 
-> Phase 1 MVP : site public + back-office minimum (réservations, offres, 1 rôle admin).
-> Phase 2 : RBAC fin, multilingue, paiement en ligne, modules visa & CRM.
-
----
+> Phase 2 livrée : site public complet + back-office complet (réservations, offres, visa, CRM, paiements, rapports, audit, RBAC + 2FA, mini-CMS, paiement Stripe, génération PDF, multilingue FR/EN).
 
 ## Stack
 
 - **Next.js 16** (App Router, TypeScript)
 - **React 19**
 - **Tailwind CSS v4** (config via `@theme` dans `globals.css`)
-- **Prisma + PostgreSQL** (Neon / Supabase)
+- **Prisma + PostgreSQL** (Neon / Supabase / Vercel Postgres)
 - **Cloudinary** pour les médias
-- **WhatsApp** via lien `wa.me` (zéro infrastructure — voir `src/lib/whatsapp.ts`)
+- **Auth admin** : JWT cookie (jose) + bcrypt + RBAC (3 rôles) + 2FA TOTP
+- **Auth client** : JWT cookie séparé, dashboard `/espace-client`
+- **Paiement carte** : Stripe (mode test par défaut)
+- **PDF** : `pdf-lib` (voucher de réservation)
+- **WhatsApp** : lien `wa.me` (zéro infrastructure — voir `src/lib/whatsapp.ts`)
+- **i18n** : sélecteur FR/EN via cookie + dictionnaire JSON
 
 ## Démarrer
 
 ```bash
-# Installer les dépendances
 pnpm install
-
-# Copier le fichier d'env et remplir les valeurs
 cp .env.example .env.local
+# Renseignez DATABASE_URL, AUTH_SECRET (openssl rand -hex 32), Cloudinary, optionnellement Stripe
 
-# Préparer la base (une fois DATABASE_URL configuré)
 pnpm prisma migrate dev
+pnpm tsx scripts/create-admin.ts <email> <password> "<Nom>"
+pnpm tsx scripts/seed.ts   # ajoute destinations/offres d'exemple
 
-# Lancer le serveur de dev
 pnpm dev
 ```
 
-Le site est accessible sur [http://localhost:3000](http://localhost:3000).
+Site sur http://localhost:3000 · admin sur http://localhost:3000/admin.
 
 ## Structure
 
 ```
 prisma/
-  schema.prisma          # Schéma DB (Destinations, Offres, Réservations, …)
+  schema.prisma          # Schéma DB (Destinations, Offres, Réservations, VisaDossier,
+                         #   Client, AdminUser, ClientAccount, TwoFactorCode,
+                         #   AuditLog, SiteSetting, Testimonial)
+messages/                # i18n FR + EN
+public/
+  photos/                # Visuels générés (destinations / blog / équipe / OG)
+  favicon.svg, logo.svg, og-default.svg
 src/
   app/                   # Routes (App Router)
-    layout.tsx           # Layout racine — nav + footer + WhatsApp FAB
     page.tsx             # Accueil
-    destinations/        # Catalogue destinations
-    offres/              # Offres & forfaits
-    billetterie/         # Vols
-    services/            # Visa, hôtel, transfert, …
-    a-propos/            # Histoire & équipe
-    blog/                # Guides pratiques
-    galerie/             # Photos
-    faq/                 # Questions fréquentes
-    contact/             # Coordonnées + formulaire
-    espace-client/       # Auth Phase 2
+    destinations/[slug]/ # Fiches destination (dynamique, photos, offres liées)
+    offres/[slug]/       # Fiches offre (prix, réservation)
+    recherche/           # Moteur de recherche filtrable
+    paiement/[slug]/     # Tunnel de paiement carte (Stripe Checkout)
+    blog/[slug]/         # Articles
+    galerie/                # Galerie photos
+    espace-client/       # Auth + dashboard client + upload pièces visa
+    admin/(authed)/      # Back-office (auth JWT + 2FA)
+      destinations/      # CRUD
+      offres/            # CRUD
+      reservations/      # Pipeline
+      visa/              # Dossiers visa + checklist
+      clients/           # CRM + export CSV
+      paiements/         # Tableau encaissé / en attente
+      rapports/          # CA, conversions, pipeline
+      communications/    # Templates newsletters/SMS/WhatsApp
+      users/             # Comptes admin + RBAC
+      audit/             # Audit log
+      media/             # Médiathèque Cloudinary
+      parametres/        # Mon compte + 2FA + mini-CMS agence
+    api/paiement/checkout/  # Endpoint Stripe Checkout
   components/
-    brand/               # Logo, wave-divider (motif de marque)
-    site/                # nav, footer, whatsApp-fab, page-hero
+    brand/               # Logo SVG, wave-divider
+    site/                # nav, footer, page-hero, search, whatsapp-fab, lang-switcher
+    admin/               # formulaires admin, 2FA, settings, visa
+    blog/                # cartes article
+    client/              # header / login / uploader visa
   lib/
-    site-config.ts       # Source unique : nom, contact, navigation
-    utils.ts             # cn(), formatFCFA(), helpers
-    whatsapp.ts          # Construction des liens wa.me
-    prisma.ts            # Client Prisma singleton
+    site-config.ts       # Constantes agence (nom, contact, navigation)
+    site-settings.ts     # Settings éditables en base (whatsapp, adresse…)
+    whatsapp.ts          # Liens wa.me pré-remplis
+    cloudinary.ts        # Upload + delete (server-only)
+    cloudinary-url.ts    # Builder d'URL client-safe
+    photos.ts            # Résolveur Cloudinary ↔ fallback local
+    regions.ts           # Labels FR / EN des régions et types d'offre
+    i18n.ts              # Dictionnaire + fonction `t(key, locale)`
+    auth.ts / auth-actions.ts / client-auth.ts / client-auth-actions.ts
+    rbac.ts              # Matrice SUPER_ADMIN / AGENT / COMPTABLE
+    audit.ts             # Helper de log d'audit
+    totp.ts              # TOTP maison (RFC 6238) sans dépendance
+    pdf.ts               # Génération voucher via pdf-lib
+    stripe.ts            # Singleton Stripe (server-only)
+    blog.ts              # Source de données des articles (Phase 1 : TS)
 ```
 
 ## Design tokens
 
-Toutes les couleurs de la marque sont définies dans `src/app/globals.css` via `@theme`. Utiliser les classes Tailwind générées :
-
-```tsx
-<div className="bg-sand text-navy">
-  <h2 className="text-ocean">Titre</h2>
-  <span className="bg-sunrise-orange/15 text-sunrise-orange">Tag</span>
-</div>
-```
+Voir `DESIGN.md` pour la liste. Toutes les couleurs et rayons sont déclarés dans `src/app/globals.css` sous `@theme`.
 
 | Token | Hex | Usage |
 | --- | --- | --- |
@@ -86,62 +109,81 @@ Toutes les couleurs de la marque sont définies dans `src/app/globals.css` via `
 
 ## Polices
 
-- **Titres** : Space Grotesk (Google Fonts, libre)
-- **Corps** : Plus Jakarta Sans (Google Fonts, libre)
+- **Titres** : Sora (Google Fonts, libre) — géométrique confiante.
+- **Corps** : Manrope (Google Fonts, libre) — lisible sans être Inter.
 
 ## Commandes utiles
 
 ```bash
 pnpm dev                 # Serveur de développement
-pnpm build               # Build de production
+pnpm build               # Build de production (Prisma generate en prebuild)
 pnpm start               # Lancer le build de prod
 pnpm lint                # ESLint
+pnpm tsc --noEmit        # Type-check
 
 pnpm db:generate         # Générer le client Prisma
-pnpm db:migrate          # Créer/ajouter une migration
+pnpm db:migrate          # Créer / ajouter une migration
 pnpm db:push             # Push le schema sans migration (dev rapide)
 pnpm db:studio           # Inspecter la DB dans le navigateur
 
 pnpm admin:create <email> <password> [name]
-                        # Créer le premier admin super-admin
+                        # Créer un admin super-admin (CLI)
 pnpm seed                # Peupler la DB avec des destinations/offres d'exemple
+
+bash scripts/audit-unlighthouse.sh
+                        # Audit Lighthouse via Unlighthouse contre le site prod
 ```
 
 ## Espace admin (`/admin`)
 
-Back-office accessible après authentification. Un seul rôle Phase 1 (`SUPER_ADMIN`) ; RBAC fin en Phase 2.
+Authentification JWT + cookie httpOnly. Trois rôles :
+- **SUPER_ADMIN** — toutes les permissions.
+- **AGENT** — réservations, destinations, offres, visa, clients.
+- **COMPTABLE** — surfaces financières en lecture.
 
-- `/admin` — Tableau de bord (KPIs, dernières réservations)
-- `/admin/destinations` — CRUD complet des destinations, upload image principale + galerie
-- `/admin/offres` — CRUD des offres/forfaits
-- `/admin/reservations` — Liste des demandes reçues via le formulaire public
-- `/admin/media` — Médiathèque (liste, suppression, copie des public_id Cloudinary)
-- `/admin/parametres` — Infos agence + variables d'environnement attendues
+2FA TOTP disponible pour les super-admins (Google Authenticator / 1Password / Authy).
 
-Toutes les pages admin passent par `src/proxy.ts` (ex-middleware) qui redirige vers `/admin/login` si la session est absente.
+Pages admin :
+- `/admin` — Tableau de bord
+- `/admin/reservations` — Pipeline
+- `/admin/visa` — Dossiers visa + checklist dynamique
+- `/admin/clients` — CRM + recherche + export CSV
+- `/admin/paiements` — Vue d'ensemble financière
+- `/admin/destinations` — CRUD
+- `/admin/offres` — CRUD
+- `/admin/media` — Médiathèque Cloudinary
+- `/admin/communications` — Templates email/SMS/WhatsApp
+- `/admin/rapports` — CA, conversions, CA par destination
+- `/admin/audit` — Audit log (200 dernières entrées)
+- `/admin/users` — Comptes internes + matrice RBAC
+- `/admin/parametres` — Mon compte + 2FA + mini-CMS agence
 
-## Roadmap Phase 1 → Phase 2
+## Espace client (`/espace-client`)
 
-Voir `TODO` interne (à venir) ou les commentaires "Phase 2" dans chaque page.
+Authentification séparée (cookie `ass_client_session`). Pages :
+- `/espace-client` — Connexion
+- `/espace-client/dashboard` — Liste réservations + dossiers visa
+- `/espace-client/visa/[id]` — Upload des pièces du dossier visa
+- `/espace-client/reservations/[id]/voucher.pdf` — Téléchargement du voucher PDF
 
-## Phase 1 — déjà livré
+## Intégrations actives
 
-- [x] Site public (11 sections)
-- [x] Auth admin (JWT cookie, bcrypt)
-- [x] CRUD destinations avec upload Cloudinary
-- [x] CRUD offres avec upload Cloudinary
-- [x] Médiathèque (liste + suppression)
-- [x] Formulaire de contact → base de données (apparaît dans `/admin/reservations`)
-- [x] WhatsApp FAB persistant (`wa.me/221775495314`)
-- [x] Schéma Prisma + scripts create-admin + seed
+| Service | Statut | Config |
+| --- | --- | --- |
+| WhatsApp | ✅ actif (lien `wa.me`) | `NEXT_PUBLIC_WHATSAPP_NUMBER` |
+| Cloudinary | ✅ actif | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` |
+| Stripe (carte) | ✅ en mode test | `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` |
+| Wave | ⏳ Phase 3 | À câbler |
+| Orange Money | ⏳ Phase 3 | À câbler |
 
-## Phase 2 — à venir
+## CI
 
-- [ ] Multilingue FR/EN
-- [ ] RBAC fin (3 rôles + 2FA super-admin)
-- [ ] Paiement Wave / Orange Money / carte
-- [ ] Suivi dossiers visa
-- [ ] Génération PDF facture / voucher
-- [ ] Notifications email automatiques
-- [ ] Multiselect destinations ↔ offres
-- [ ] UI Customizer (logo, palette, copy)
+- `.github/workflows/ci.yml` — lint + type-check + build + Prisma push (PostgreSQL de service).
+- `.github/workflows/unlighthouse.yml` — audit Lighthouse après chaque build réussi.
+
+## Documentation
+
+- `DESIGN.md` — Design system (tokens, typo, motifs, anti-patterns).
+- `docs/GUIDE-OPERATEUR.md` — Manuel pour l'équipe Assirik (utilisation quotidienne du back-office).
+- `docs/MARKETING-BRIEF.md` — Positionnement, audience, SEO.
+- `docs/SKILLS.md` — Quand invoquer ui-ux-pro-max, impeccable, etc.

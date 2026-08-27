@@ -1,61 +1,44 @@
+# env
+.env*.local
+.env
+
 # dependencies
-node_modules/
+node_modules
 .pnp
-.pnp.*
+.pnp.js
 
-# next.js
-.next/
-out/
-next-env.d.ts
-
-# production
-build/
-dist/
-
-# misc
-.DS_Store
-*.pem
+# build
+.next
+out
+build
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
+.pnpm-debug.log*
 
-# local env files
-.env*.local
-.env
-
-# vercel
+# misc
+.DS_Store
+*.pem
 .vercel
 
 # typescript
 *.tsbuildinfo
+next-env.d.ts
 
-# prisma
-prisma/migrations/dev.db*
+# lighthouse/unlighthouse
+.lighthouseci
+.unlighthouse
 
-# editor
-.vscode/
-.idea/
+# puppeteer
+puppeteer-cache
+.cache
 
-# OS
-Thumbs.db
-
-# Logs
-logs/
-*.log
-
-# Real env files (template .env.example stays tracked)
-.env
-.env*.local
-.env.*.local
-.env.production
-.env.development
-.env*
-
-# Agent Skills ecosystem (CLI-managed, regenerated per machine)
-.agents/
+# Skills installed in-repo (kept locally, not shipped)
+.agents/skills/
+.codex/skills.lock
 .claude/
-.codex/
-skills-lock.json
+
+# Reports
+reports/

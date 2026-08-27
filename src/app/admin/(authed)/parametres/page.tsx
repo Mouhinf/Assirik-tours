@@ -1,59 +1,76 @@
+import { prisma } from "@/lib/prisma";
 import { siteConfig } from "@/lib/site-config";
+import { TwoFactorCard } from "@/components/admin/two-factor-card";
+import { SiteSettingsForm } from "@/components/admin/site-settings-form";
+import { ROLE_LABELS_FR, type AdminRole } from "@/lib/rbac";
+import { getSiteSettings } from "@/lib/site-settings";
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function AdminSettingsPage() {
+export default async function AdminSettingsPage() {
+  const session = await getSession();
+  if (!session) redirect("/admin/login");
+
+  const adminUser = await prisma.adminUser.findUnique({
+    where: { id: session.sub },
+    
+  });
+  const userCount = await prisma.adminUser.count();
+  const settings = await getSiteSettings();
+
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-8 max-w-3xl">
       <header>
-        <h1 className="font-display text-3xl font-semibold text-navy">
-          Paramètres
-        </h1>
-        <p className="mt-1 text-graphite">
-          Informations de l'agence — affichées sur le site public. Modifiables
-          dans <code className="font-mono bg-sand-deep/60 px-1 py-0.5 rounded">src/lib/site-config.ts</code>.
-        </p>
+        <h1 className="font-display text-3xl font-semibold text-navy">Paramètres</h1>
+        <p className="mt-1 text-graphite">Votre compte et les informations de l&apos;agence.</p>
       </header>
 
+      {/* Compte */}
       <section className="rounded-xl bg-sand border border-sand-deep p-6">
-        <h2 className="font-display text-base font-semibold text-navy">
-          Identité
-        </h2>
+        <h2 className="font-display text-base font-semibold text-navy">Mon compte</h2>
+        <dl className="mt-4 grid sm:grid-cols-2 gap-4 text-sm">
+          <Row label="Email" value={session.email} />
+          <Row label="Rôle" value={ROLE_LABELS_FR[session.role as AdminRole] ?? session.role} />
+          <Row label="2FA" value={adminUser?.twoFactorEnabled ? "Activée" : "Désactivée"} />
+          <Row label="Dernière connexion" value={adminUser?.lastLoginAt ? new Date(adminUser.lastLoginAt).toLocaleString("fr-FR") : "—"} />
+        </dl>
+        <div className="mt-6">
+          <TwoFactorCard enabled={!!adminUser?.twoFactorEnabled} />
+        </div>
+      </section>
+
+      {/* Agence — éditable */}
+      <section className="rounded-xl bg-sand border border-sand-deep p-6">
+        <h2 className="font-display text-base font-semibold text-navy">Identité agence</h2>
+        <p className="mt-2 text-sm text-graphite">
+          Ces informations sont affichées sur le site public (footer, contact, WhatsApp).
+        </p>
+        <div className="mt-4">
+          <SiteSettingsForm initial={settings} />
+        </div>
+      </section>
+
+      {/* Statique fallback (variables code-only) */}
+      <section className="rounded-xl bg-sand border border-sand-deep p-6">
+        <h2 className="font-display text-base font-semibold text-navy">Constantes techniques</h2>
+        <p className="mt-2 text-sm text-graphite">
+          Certaines constantes restent dans <code className="font-mono bg-sand-deep/60 px-1 py-0.5 rounded">src/lib/site-config.ts</code> (nom, slug, navigation, taxonomy).
+        </p>
         <dl className="mt-4 grid sm:grid-cols-2 gap-4 text-sm">
           <Row label="Nom" value={siteConfig.name} />
-          <Row label="Tagline" value={siteConfig.tagline} />
+          <Row label="URL canonique" value={siteConfig.url} />
         </dl>
       </section>
 
+      {/* Utilisateurs */}
       <section className="rounded-xl bg-sand border border-sand-deep p-6">
-        <h2 className="font-display text-base font-semibold text-navy">
-          Contact
-        </h2>
-        <dl className="mt-4 grid sm:grid-cols-2 gap-4 text-sm">
-          <Row label="Email" value={siteConfig.email} />
-          <Row label="Téléphone fixe" value={siteConfig.phones.landline} />
-          <Row label="WhatsApp" value={siteConfig.phones.whatsapp} />
-          <Row
-            label="Adresse"
-            value={`${siteConfig.address.line1}, ${siteConfig.address.line2}, ${siteConfig.address.city}`}
-          />
-        </dl>
-      </section>
-
-      <section className="rounded-xl bg-sand border border-sand-deep p-6">
-        <h2 className="font-display text-base font-semibold text-navy">
-          Variables d'environnement (à configurer sur Vercel)
-        </h2>
-        <ul className="mt-4 space-y-2 text-sm">
-          <EnvRow name="NEXT_PUBLIC_SITE_URL" desc="URL du site en production" />
-          <EnvRow name="DATABASE_URL" desc="Connexion PostgreSQL (Neon)" />
-          <EnvRow name="CLOUDINARY_CLOUD_NAME" desc="Cloud name Cloudinary" />
-          <EnvRow name="CLOUDINARY_API_KEY" desc="API key Cloudinary" />
-          <EnvRow name="CLOUDINARY_API_SECRET" desc="API secret Cloudinary" />
-          <EnvRow
-            name="AUTH_SECRET"
-            desc="Clé de signature JWT (openssl rand -hex 32)"
-          />
-          <EnvRow name="NEXT_PUBLIC_WHATSAPP_NUMBER" desc="Numéro WhatsApp sans +" />
-        </ul>
+        <h2 className="font-display text-base font-semibold text-navy">Utilisateurs internes</h2>
+        <p className="mt-2 text-sm text-graphite">
+          {userCount} compte{userCount > 1 ? "s" : ""} actif{userCount > 1 ? "s" : ""}.
+        </p>
+        <p className="mt-2 text-sm text-graphite">
+          Création via <code className="font-mono bg-sand-deep/60 px-1 py-0.5 rounded">pnpm admin:create</code> ou via la page <a href="/admin/users" className="text-ocean hover:underline">Utilisateurs</a>.
+        </p>
       </section>
     </div>
   );
@@ -62,19 +79,8 @@ export default function AdminSettingsPage() {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs font-semibold uppercase tracking-wider text-silver">
-        {label}
-      </dt>
-      <dd className="mt-1 text-navy">{value}</dd>
+      <dt className="text-xs font-semibold uppercase tracking-wider text-graphite">{label}</dt>
+      <dd className="mt-1 text-navy font-medium">{value}</dd>
     </div>
-  );
-}
-
-function EnvRow({ name, desc }: { name: string; desc: string }) {
-  return (
-    <li className="flex items-start gap-3 rounded-lg bg-sand-deep/30 px-3 py-2">
-      <code className="font-mono text-xs text-ocean shrink-0">{name}</code>
-      <span className="text-xs text-graphite">{desc}</span>
-    </li>
   );
 }

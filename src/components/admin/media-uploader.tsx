@@ -114,7 +114,7 @@ export function MediaGallery({
   if (assets.length === 0) {
     return (
       <p className="text-sm text-silver text-center py-8">
-        Aucun média pour l'instant.
+        Aucun média pour linstant.
       </p>
     );
   }

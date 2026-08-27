@@ -4,12 +4,9 @@ import { SiteNav } from "@/components/site/nav";
 import { SiteFooter } from "@/components/site/footer";
 import { WhatsAppFab } from "@/components/site/whatsapp-fab";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo/jsonld";
+import { getLocaleCookie } from "@/lib/i18n-actions";
 import "./globals.css";
 
-// Distinctive pairing — not Inter, not Plus Jakarta, not Space Grotesk.
-// Sora is a geometric sans with a confident, slightly retro character
-// (chosen for headings — feels editorial, not "another AI SaaS").
-// Manrope is a clean readable sans for body copy, less overused.
 const display = Sora({
   variable: "--font-sora",
   subsets: ["latin"],
@@ -58,7 +55,7 @@ export const metadata: Metadata = {
       "Vols, visas et séjours sur mesure depuis Dakar. Sénégal, Omra, Maroc, Turquie, Dubaï, Europe.",
     images: [
       {
-        url: "/og-default.png",
+        url: "/photos/og/og-default.jpg",
         width: 1200,
         height: 630,
         alt: "Assirik Tours — Agence de voyages à Dakar",
@@ -83,14 +80,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const locale = await getLocaleCookie();
   return (
     <html
-      lang="fr"
+      lang={locale === "en" ? "en" : "fr-SN"}
       className={`${display.variable} ${body.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-sand text-anthracite font-body">
-        {/* Structured data — TravelAgency organization schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}

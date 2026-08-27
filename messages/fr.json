@@ -1,0 +1,39 @@
+{
+  "nav": {
+    "destinations": "Destinations",
+    "offres": "Offres",
+    "billetterie": "Billetterie",
+    "services": "Services",
+    "a_propos": "À propos",
+    "blog": "Blog",
+    "contact": "Contact"
+  },
+  "common": {
+    "discover": "Découvrir",
+    "see_all": "Voir tout",
+    "from": "À partir de",
+    "per_person": "par personne",
+    "day": "jour",
+    "days": "jours",
+    "whatsapp_cta": "Discuter sur WhatsApp",
+    "book_whatsapp": "Réserver sur WhatsApp",
+    "request_quote": "Demander un devis",
+    "all_offers": "Toutes les offres",
+    "all_destinations": "Toutes les destinations"
+  },
+  "home": {
+    "hero_title": "Vols, visas, séjours.",
+    "hero_title_2": "Un interlocuteur unique à Dakar.",
+    "hero_description": "Nous organisons vos voyages depuis le Sénégal — Sénégal, Omra, Maroc, Turquie, Dubaï, Europe. Billets, formalités visa et séjours coordonnés par une équipe qui connaît le terrain.",
+    "featured_title": "Là où nous allons le plus souvent",
+    "offers_title": "Trois voyages prêts à réserver",
+    "testimonials_title": "Témoignages vérifiés",
+    "final_cta_title": "Une idée de voyage en tête ?",
+    "final_cta_description": "Décrivez-nous votre projet en quelques phrases — destination, dates approximatives, nombre de voyageurs, budget indicatif. Un conseiller vous rappelle avec une première estimation sous 24h ouvrées."
+  },
+  "contact": {
+    "title": "Parlons de votre prochain voyage",
+    "description": "Un conseiller vous répond — pas un robot, pas un formulaire perdu. Choisissez le canal qui vous arrange.",
+    "form_title": "Formulaire de devis"
+  }
+}

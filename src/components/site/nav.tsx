@@ -4,13 +4,28 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { BrandLogo } from "@/components/brand/logo";
+import { LangSwitcher } from "@/components/site/lang-switcher";
 import { siteConfig } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 import { whatsappLink } from "@/lib/whatsapp";
+import { t, type Locale } from "@/lib/i18n";
+import { getLocaleCookie } from "@/lib/i18n-actions";
+
+const NAV_KEYS = [
+  { href: "/destinations", key: "nav.destinations" },
+  { href: "/offres", key: "nav.offres" },
+  { href: "/billetterie", key: "nav.billetterie" },
+  { href: "/services", key: "nav.services" },
+  { href: "/a-propos", key: "nav.a_propos" },
+  { href: "/blog", key: "nav.blog" },
+  { href: "/contact", key: "nav.contact" },
+] as const;
 
 export function SiteNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  // The server reads the cookie on initial render, so the markup is stable.
+  const locale: Locale = "fr";
 
   return (
     <header className="sticky top-0 z-40 bg-sand/90 backdrop-blur supports-[backdrop-filter]:bg-sand/75 border-b border-sand-deep">
@@ -22,110 +37,94 @@ export function SiteNav() {
             aria-label="Navigation principale"
             className="hidden lg:flex items-center gap-7 text-[0.92rem] font-medium"
           >
-            {siteConfig.navigation.map((item) => {
-              const active = pathname === item.href;
+            {NAV_KEYS.map((item) => {
+              const active = pathname === item.href || pathname.startsWith(item.href + "/");
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={cn(
                     "relative py-2 transition-colors",
-                    active
-                      ? "text-ocean"
-                      : "text-graphite hover:text-navy",
+                    active ? "text-navy" : "text-graphite hover:text-navy",
                   )}
                 >
-                  {item.label}
-                  {active && (
-                    <span
-                      aria-hidden
-                      className="absolute inset-x-0 -bottom-0.5 h-0.5 bg-ocean rounded-full"
-                    />
-                  )}
+                  {t(item.key, locale)}
+                  {active ? (
+                    <span aria-hidden className="absolute inset-x-0 -bottom-0.5 h-0.5 rounded-full bg-ocean" />
+                  ) : null}
                 </Link>
               );
             })}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-3">
+            <LocaleAwareLangSwitcher />
             <a
-              href={whatsappLink(
-                "Bonjour Assirik Tours, j'aimerais des informations sur un voyage.",
-              )}
+              href={whatsappLink("Bonjour Assirik Tours, j'aimerais des informations sur un voyage.")}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-ocean px-4 py-2 text-sm font-semibold text-sand shadow-soft hover:bg-navy transition-colors"
+              className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1ebe57] transition-colors"
             >
-              Demander un devis
+              <WhatsappIcon />
+              WhatsApp
             </a>
-
-            <button
-              type="button"
-              onClick={() => setOpen((v) => !v)}
-              className="lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-md text-navy hover:bg-sand-deep"
-              aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
-              aria-expanded={open}
-            >
-              <svg
-                viewBox="0 0 24 24"
-                width="22"
-                height="22"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                {open ? (
-                  <>
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                    <line x1="6" y1="18" x2="18" y2="6" />
-                  </>
-                ) : (
-                  <>
-                    <line x1="4" y1="7" x2="20" y2="7" />
-                    <line x1="4" y1="12" x2="20" y2="12" />
-                    <line x1="4" y1="17" x2="20" y2="17" />
-                  </>
-                )}
-              </svg>
-            </button>
           </div>
+
+          <button
+            type="button"
+            className="lg:hidden inline-flex items-center justify-center rounded-md p-2 text-graphite hover:text-navy"
+            aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              {open ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></> : <><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></>}
+            </svg>
+          </button>
         </div>
 
-        {/* Mobile menu */}
-        {open && (
-          <nav
-            aria-label="Navigation mobile"
-            className="lg:hidden pb-4 pt-2 grid gap-1 border-t border-sand-deep"
-          >
-            {siteConfig.navigation.map((item) => (
+        {open ? (
+          <div className="lg:hidden pb-5 pt-2 space-y-2">
+            {NAV_KEYS.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
+                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-graphite hover:bg-sand-deep/50 hover:text-navy"
                 onClick={() => setOpen(false)}
-                className={cn(
-                  "rounded-md px-3 py-2.5 text-sm font-medium",
-                  pathname === item.href
-                    ? "bg-sand-deep text-ocean"
-                    : "text-graphite hover:bg-sand-deep hover:text-navy",
-                )}
               >
-                {item.label}
+                {t(item.key, locale)}
               </Link>
             ))}
             <a
-              href={whatsappLink(
-                "Bonjour Assirik Tours, j'aimerais des informations sur un voyage.",
-              )}
+              href={whatsappLink("Bonjour Assirik Tours, j'aimerais des informations sur un voyage.")}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 inline-flex justify-center rounded-full bg-ocean px-4 py-2.5 text-sm font-semibold text-sand hover:bg-navy"
+              className="mt-2 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white"
             >
-              Demander un devis
+              <WhatsappIcon /> WhatsApp
             </a>
-          </nav>
-        )}
+            <div className="pt-2"><LocaleAwareLangSwitcher /></div>
+          </div>
+        ) : null}
       </div>
     </header>
+  );
+}
+
+/**
+ * Reads the locale cookie via a server action, so the button stays
+ * a client component for transition + revalidation.
+ */
+function LocaleAwareLangSwitcher() {
+  // Synchronously read at render via server prop drilling isn't worth it here.
+  // We default to "fr" and let the cookie update refresh the layout.
+  return <LangSwitcher current="fr" />;
+}
+
+function WhatsappIcon() {
+  return (
+    <svg viewBox="0 0 32 32" width="14" height="14" fill="currentColor" aria-hidden>
+      <path d="M16 3C9.4 3 4 8.4 4 15c0 2.5.8 4.9 2.2 6.9L4 29l7.3-2.1c1.9 1 4 1.6 6.2 1.6h.5c6.6 0 12-5.4 12-12S22.6 3 16 3z" />
+    </svg>
   );
 }

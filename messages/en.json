@@ -1,0 +1,39 @@
+{
+  "nav": {
+    "destinations": "Destinations",
+    "offres": "Packages",
+    "billetterie": "Air tickets",
+    "services": "Services",
+    "a_propos": "About",
+    "blog": "Blog",
+    "contact": "Contact"
+  },
+  "common": {
+    "discover": "Discover",
+    "see_all": "See all",
+    "from": "From",
+    "per_person": "per person",
+    "day": "day",
+    "days": "days",
+    "whatsapp_cta": "Chat on WhatsApp",
+    "book_whatsapp": "Book on WhatsApp",
+    "request_quote": "Request a quote",
+    "all_offers": "All packages",
+    "all_destinations": "All destinations"
+  },
+  "home": {
+    "hero_title": "Flights, visas, stays.",
+    "hero_title_2": "One trusted point of contact in Dakar.",
+    "hero_description": "We organise travel from Senegal — Senegal, Umrah, Morocco, Turkey, Dubai, Europe. Flights, visa paperwork and stays handled by a team that knows the terrain.",
+    "featured_title": "Where we go most often",
+    "offers_title": "Three trips ready to book",
+    "testimonials_title": "Verified testimonials",
+    "final_cta_title": "Have a trip in mind?",
+    "final_cta_description": "Tell us your project in a few sentences — destination, approximate dates, number of travellers, indicative budget. A consultant calls you back with a first estimate within 24 business hours."
+  },
+  "contact": {
+    "title": "Let's talk about your next trip",
+    "description": "A consultant answers — not a bot, not a lost form. Choose whichever channel suits you.",
+    "form_title": "Quote request form"
+  }
+}

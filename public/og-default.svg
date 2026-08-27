@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F7F5F0"/>
+      <stop offset="55%" stop-color="#FFFAEC"/>
+      <stop offset="100%" stop-color="#F7F5F0"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFCE54"/>
+      <stop offset="100%" stop-color="#F5A73B"/>
+    </linearGradient>
+    <linearGradient id="wave" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1D6FB8"/>
+      <stop offset="100%" stop-color="#4FA8DA"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <g transform="translate(80,140)">
+    <circle cx="100" cy="80" r="60" fill="url(#sun)"/>
+    <rect x="20" y="160" width="22" height="90" fill="#1D6FB8"/>
+    <rect x="46" y="140" width="22" height="110" fill="#12406B"/>
+    <rect x="72" y="115" width="22" height="135" fill="#1D6FB8"/>
+    <rect x="98" y="130" width="22" height="120" fill="#12406B"/>
+    <rect x="124" y="155" width="22" height="95" fill="#1D6FB8"/>
+    <rect x="150" y="175" width="22" height="75" fill="#12406B"/>
+    <path d="M0 280 Q 80 240, 180 280 T 360 280 L 360 320 L 0 320 Z" fill="url(#wave)" opacity="0.85"/>
+  </g>
+  <text x="540" y="270" font-family="Sora, system-ui, sans-serif" font-weight="700" font-size="78" fill="#12406B">Assirik Tours</text>
+  <text x="540" y="340" font-family="Manrope, system-ui, sans-serif" font-weight="500" font-size="32" fill="#1D6FB8">Agence de voyages à Dakar</text>
+  <text x="540" y="400" font-family="Manrope, system-ui, sans-serif" font-weight="400" font-size="26" fill="#4A5159">Vols · Visas · Séjours sur mesure</text>
+  <line x1="540" y1="430" x2="780" y2="430" stroke="#F5A73B" stroke-width="3"/>
+  <text x="540" y="475" font-family="Manrope, system-ui, sans-serif" font-weight="500" font-size="22" fill="#12406B">Sénégal · Omra · Maroc · Turquie · Dubaï · Europe</text>
+</svg>

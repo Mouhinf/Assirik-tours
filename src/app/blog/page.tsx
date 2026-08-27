@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { PageHero, InProgressBlock } from "@/components/site/page-hero";
+import { PageHero } from "@/components/site/page-hero";
+import { BlogPostCard } from "@/components/blog/post-card";
+import { listBlogPosts } from "@/lib/blog";
 
 export const metadata: Metadata = {
   title: "Blog & guides",
@@ -8,6 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default function BlogPage() {
+  const posts = listBlogPosts();
   return (
     <>
       <PageHero
@@ -16,18 +19,19 @@ export default function BlogPage() {
         description="Articles courts et concrets, écrits par l'équipe Assirik et nos partenaires locaux. Pas de SEO-bait — du contenu qui fait gagner du temps."
       />
 
-      <InProgressBlock
-        title="Premiers articles à paraître"
-        description="La rédaction du blog démarre en parallèle du site. Sujets prioritaires :"
-        bulletItems={[
-          "Documents visa Schengen — checklist 2026",
-          "Quelle période partir au Sénégal ?",
-          "Omra Ramadan — formalités et budget",
-          "Premier voyage à Dubai — 7 jours conseillés",
-          "Voyager avec un mineur — pièces requises",
-          "Droits des passagers en cas de retard de vol",
-        ]}
-      />
+      <section className="container-narrow pb-20">
+        {posts.length === 0 ? (
+          <p className="rounded-xl border border-sand-deep bg-sand p-8 text-center text-graphite">
+            Les premiers articles arrivent bientôt.
+          </p>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {posts.map((p) => (
+              <BlogPostCard key={p.slug} {...p} />
+            ))}
+          </div>
+        )}
+      </section>
     </>
   );
 }

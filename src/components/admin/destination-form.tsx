@@ -106,7 +106,7 @@ export function DestinationForm({
           Image principale
         </h3>
         <p className="mt-1 text-xs text-silver">
-          Format paysage recommandé. Affichée sur la page d'accueil et en haut
+          Format paysage recommandé. Affichée sur la page daccueil et en haut
           de la fiche destination.
         </p>
 

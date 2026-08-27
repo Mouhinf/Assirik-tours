@@ -121,6 +121,8 @@ model Reservation {
   id            String            @id @default(cuid())
   reference     String            @unique // e.g. "AT-2026-00042"
   status        ReservationStatus @default(NOUVELLE)
+  clientAccountId String?
+  clientAccount ClientAccount?    @relation("ClientAccountReservations", fields: [clientAccountId], references: [id], onDelete: SetNull)
 
   // Snapshot of the trip at booking time
   travelers     Int               @default(1)
@@ -175,13 +177,22 @@ model VisaDossier {
   id            String      @id @default(cuid())
   reference     String      @unique
   destination   String      // e.g. "Schengen", "USA", "Canada"
+  visaType      String?     // e.g. "court séjour", "long séjour", "Omra"
   status        VisaStatus  @default(BROUILLON)
   deadline      DateTime?
+  appointmentAt DateTime?
   documents     Json        @default("[]") // [{name, cloudinaryId, uploadedAt}]
-  clientId      String
+  feeFCFA       Int         @default(0)
+  paid          Boolean     @default(false)
+  clientId      String      // FK to Client
+  clientAccountId String?
+  clientAccount ClientAccount? @relation(fields: [clientAccountId], references: [id], onDelete: SetNull)
   notes         String?     @db.Text
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+
+  @@index([clientId])
+  @@index([status])
 }
 
 // ── Témoignages ───────────────────────────────────────────────────────
@@ -195,4 +206,57 @@ model Testimonial {
   tripSlug  String?
   approved  Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+// ── RBAC extensions ─────────────────────────────────────────────
+
+model TwoFactorCode {
+  id        String   @id @default(cuid())
+  userId    String
+  secret    String   // encrypted at rest in production
+  confirmed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  lastUsed  DateTime?
+
+  @@unique([userId])
+  @@index([userId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String   // e.g. "reservation.create", "offer.publish"
+  entity    String?  // e.g. "reservation:abc123"
+  metadata  Json?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+}
+
+model ClientAccount {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  phone        String?
+  emailVerified Boolean @default(false)
+  verifyToken  String?
+  resetToken   String?
+  resetExpires DateTime?
+  createdAt    DateTime @default(now())
+  lastLoginAt  DateTime?
+
+  reservations Reservation[] @relation("ClientAccountReservations")
+  visaDossiers VisaDossier[]
+}
+
+// ── Site settings (mini-CMS singleton) ────────────────────────
+
+model SiteSetting {
+  id        String   @id @default("singleton")
+  data      Json
+  updatedAt DateTime @updatedAt
 }

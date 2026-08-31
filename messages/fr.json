@@ -35,5 +35,23 @@
     "title": "Parlons de votre prochain voyage",
     "description": "Un conseiller vous répond — pas un robot, pas un formulaire perdu. Choisissez le canal qui vous arrange.",
     "form_title": "Formulaire de devis"
+  },
+  "testimonials": {
+    "section_title": "Témoignages vérifiés",
+    "section_subtitle": "Ce que disent nos voyageurs",
+    "see_all": "Voir tous les témoignages",
+    "see_trip": "Voir ce voyage",
+    "rating_out_of": "Note : {n}/5",
+    "trip_date": "Voyage de {month} {year}",
+    "no_results": "Aucun témoignage pour ces filtres.",
+    "page_title": "Témoignages clients | Assirik Tours",
+    "page_description": "Ils ont voyagé avec Assirik Tours : retours vérifiés de voyageurs sénégalais et de la diaspora sur nos séjours au Sénégal, Omra, Maroc, Turquie, Dubaï et en Europe.",
+    "filters": {
+      "title": "Filtrer",
+      "language": "Langue",
+      "min_rating": "Note minimum",
+      "destination": "Destination",
+      "reset": "Réinitialiser"
+    }
   }
 }

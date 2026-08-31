@@ -48,3 +48,9 @@ export const OFFER_KIND_LABELS_EN: Record<string, string> = {
   HAJJ: "Hajj",
   BILLETERIE: "Air tickets",
 };
+
+/** Style badge used to flag testimonials by language in admin & public lists. */
+export const LANGUAGE_BADGE: Record<"fr" | "en", string> = {
+  fr: "bg-ocean/15 text-navy",
+  en: "bg-sky/15 text-ocean",
+};

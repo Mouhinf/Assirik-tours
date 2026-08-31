@@ -2,10 +2,14 @@ import Link from "next/link";
 import { WaveDivider } from "@/components/brand/wave-divider";
 import { DestinationCard } from "@/components/site/destination-card";
 import { OfferCard } from "@/components/site/offer-card";
+import { TestimonialCard } from "@/components/site/testimonial-card";
 import { prisma } from "@/lib/prisma";
 import { resolveImage, FALLBACK_BY_SLUG } from "@/lib/photos";
 import { whatsappLink } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
+import { getLocaleCookie } from "@/lib/i18n-actions";
+import { isLocale, DEFAULT_LOCALE } from "@/lib/i18n";
+import { buildReviewsJsonLd } from "@/lib/seo/jsonld";
 
 const trustPoints = [
   {
@@ -23,6 +27,9 @@ const trustPoints = [
 ];
 
 export default async function HomePage() {
+  const cookieLocale = await getLocaleCookie();
+  const displayLocale = isLocale(cookieLocale) ? cookieLocale : DEFAULT_LOCALE;
+
   const [featuredDestinations, latestOffers, testimonials] = await Promise.all([
     prisma.destination.findMany({
       where: { published: true, featured: true },
@@ -36,11 +43,27 @@ export default async function HomePage() {
       take: 3,
     }),
     prisma.testimonial.findMany({
-      where: { approved: true },
-      orderBy: { createdAt: "desc" },
+      where: { approved: true, locale: displayLocale },
+      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
       take: 3,
     }),
   ]);
+
+  // JSON-LD: also pull a slightly wider set (still capped to 10) for SEO.
+  const reviewsForSeo = await prisma.testimonial.findMany({
+    where: { approved: true },
+    orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+    take: 10,
+  });
+  const reviewsLd = buildReviewsJsonLd(
+    reviewsForSeo.map((r) => ({
+      author: r.author,
+      rating: r.rating,
+      content: r.content,
+      dateTrip: r.dateTrip,
+      locale: r.locale as "fr" | "en",
+    })),
+  );
 
   const heroImage = resolveImage(null, FALLBACK_BY_SLUG["lac-rose"] ?? "/photos/destinations/lac-rose.jpg", {
     width: 1920, height: 1080, crop: "fill",
@@ -48,6 +71,13 @@ export default async function HomePage() {
 
   return (
     <>
+      {reviewsLd ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewsLd) }}
+        />
+      ) : null}
+
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
@@ -193,27 +223,43 @@ export default async function HomePage() {
       {/* Testimonials */}
       {testimonials.length > 0 ? (
         <section className="container-narrow pb-16">
-          <header className="mb-6">
-            <p className="text-xs font-semibold uppercase tracking-wider text-sunrise-coral">
-              Ils ont voyagé avec nous
-            </p>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-navy">
-              Témoignages vérifiés
-            </h2>
+          <header className="flex items-end justify-between gap-4 mb-6 flex-wrap">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-sunrise-coral">
+                {displayLocale === "en" ? "They travelled with us" : "Ils ont voyagé avec nous"}
+              </p>
+              <h2 className="mt-2 font-display text-3xl font-semibold text-navy">
+                {displayLocale === "en"
+                  ? "Verified testimonials"
+                  : "Témoignages vérifiés"}
+              </h2>
+            </div>
+            <Link
+              href="/temoignages"
+              className="text-sm font-semibold text-ocean hover:text-navy"
+            >
+              {displayLocale === "en"
+                ? "See all testimonials →"
+                : "Voir tous les témoignages →"}
+            </Link>
           </header>
           <div className="grid md:grid-cols-3 gap-6">
             {testimonials.map((t) => (
-              <figure key={t.id} className="rounded-xl border border-sand-deep bg-sand p-6">
-                <blockquote className="text-graphite leading-relaxed">
-                  &ldquo;{t.content}&rdquo;
-                </blockquote>
-                <figcaption className="mt-4 flex items-center justify-between text-sm">
-                  <span className="font-semibold text-navy">{t.author}{t.city ? `, ${t.city}` : ""}</span>
-                  <span aria-label={`Note ${t.rating} sur 5`} className="text-sunrise-orange">
-                    {"★".repeat(t.rating)}
-                  </span>
-                </figcaption>
-              </figure>
+              <TestimonialCard
+                key={t.id}
+                t={{
+                  id: t.id,
+                  author: t.author,
+                  city: t.city,
+                  content: t.content,
+                  rating: t.rating,
+                  tripSlug: t.tripSlug,
+                  locale: t.locale as "fr" | "en",
+                  avatarId: t.avatarId,
+                  dateTrip: t.dateTrip ? t.dateTrip.toISOString() : null,
+                }}
+                variant="full"
+              />
             ))}
           </div>
         </section>

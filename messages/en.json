@@ -35,5 +35,23 @@
     "title": "Let's talk about your next trip",
     "description": "A consultant answers — not a bot, not a lost form. Choose whichever channel suits you.",
     "form_title": "Quote request form"
+  },
+  "testimonials": {
+    "section_title": "Verified testimonials",
+    "section_subtitle": "What our travellers say",
+    "see_all": "See all testimonials",
+    "see_trip": "See this trip",
+    "rating_out_of": "Rating: {n}/5",
+    "trip_date": "{month} {year} trip",
+    "no_results": "No testimonials match these filters.",
+    "page_title": "Customer testimonials | Assirik Tours",
+    "page_description": "Verified reviews from travellers who booked their Senegal, Umrah, Morocco, Turkey, Dubai or Europe trip with Assirik Tours.",
+    "filters": {
+      "title": "Filter",
+      "language": "Language",
+      "min_rating": "Minimum rating",
+      "destination": "Destination",
+      "reset": "Reset"
+    }
   }
 }

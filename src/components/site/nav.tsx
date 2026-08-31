@@ -5,11 +5,9 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { BrandLogo } from "@/components/brand/logo";
 import { LangSwitcher } from "@/components/site/lang-switcher";
-import { siteConfig } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 import { whatsappLink } from "@/lib/whatsapp";
 import { t, type Locale } from "@/lib/i18n";
-import { getLocaleCookie } from "@/lib/i18n-actions";
 
 const NAV_KEYS = [
   { href: "/destinations", key: "nav.destinations" },
@@ -21,11 +19,9 @@ const NAV_KEYS = [
   { href: "/contact", key: "nav.contact" },
 ] as const;
 
-export function SiteNav() {
+export function SiteNav({ locale }: { locale: Locale }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  // The server reads the cookie on initial render, so the markup is stable.
-  const locale: Locale = "fr";
 
   return (
     <header className="sticky top-0 z-40 bg-sand/90 backdrop-blur supports-[backdrop-filter]:bg-sand/75 border-b border-sand-deep">
@@ -58,12 +54,12 @@ export function SiteNav() {
           </nav>
 
           <div className="hidden lg:flex items-center gap-3">
-            <LocaleAwareLangSwitcher />
+            <LocaleAwareLangSwitcher locale={locale} />
             <a
               href={whatsappLink("Bonjour Assirik Tours, j'aimerais des informations sur un voyage.")}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1ebe57] transition-colors"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-whatsapp px-4 py-2 text-sm font-semibold text-sand transition-colors hover:bg-whatsapp-hover"
             >
               <WhatsappIcon />
               WhatsApp
@@ -99,11 +95,11 @@ export function SiteNav() {
               href={whatsappLink("Bonjour Assirik Tours, j'aimerais des informations sur un voyage.")}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white"
+              className="mt-2 inline-flex min-h-11 items-center gap-2 rounded-full bg-whatsapp px-4 py-2 text-sm font-semibold text-sand hover:bg-whatsapp-hover"
             >
               <WhatsappIcon /> WhatsApp
             </a>
-            <div className="pt-2"><LocaleAwareLangSwitcher /></div>
+            <div className="pt-2"><LocaleAwareLangSwitcher locale={locale} /></div>
           </div>
         ) : null}
       </div>
@@ -112,13 +108,11 @@ export function SiteNav() {
 }
 
 /**
- * Reads the locale cookie via a server action, so the button stays
- * a client component for transition + revalidation.
+ * The server layout supplies the cookie-backed locale, keeping the initial
+ * client render and the language switcher's selected state in sync.
  */
-function LocaleAwareLangSwitcher() {
-  // Synchronously read at render via server prop drilling isn't worth it here.
-  // We default to "fr" and let the cookie update refresh the layout.
-  return <LangSwitcher current="fr" />;
+function LocaleAwareLangSwitcher({ locale }: { locale: Locale }) {
+  return <LangSwitcher current={locale} />;
 }
 
 function WhatsappIcon() {

@@ -37,7 +37,7 @@ export default async function AdminCommunicationsPage() {
               <a
                 href={`https://wa.me/${r.client.phone?.replace(/\D/g, "")}`}
                 target="_blank" rel="noopener noreferrer"
-                className="text-xs font-semibold text-[#25D366] hover:underline"
+                className="text-xs font-semibold text-whatsapp hover:underline"
               >
                 Relancer sur WhatsApp →
               </a>

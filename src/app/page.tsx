@@ -122,7 +122,7 @@ export default async function HomePage() {
             <a
               href={whatsappLink("Bonjour Assirik Tours, j'aimerais des informations sur un voyage.")}
               target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-6 py-3 text-sm font-semibold text-white hover:bg-[#1ebe57] transition-colors"
+              className="inline-flex items-center gap-2 rounded-full bg-whatsapp px-6 py-3 text-sm font-semibold text-sand hover:bg-whatsapp-hover transition-colors"
             >
               <WhatsappIcon />
               Discuter sur WhatsApp
@@ -281,7 +281,7 @@ export default async function HomePage() {
             <a
               href={whatsappLink("Bonjour Assirik Tours, j'aimerais des informations sur un voyage.")}
               target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-6 py-3 text-sm font-semibold text-white hover:bg-[#1ebe57] transition-colors"
+              className="inline-flex items-center gap-2 rounded-full bg-whatsapp px-6 py-3 text-sm font-semibold text-sand hover:bg-whatsapp-hover transition-colors"
             >
               Discuter sur WhatsApp
             </a>

@@ -18,6 +18,10 @@
   --color-sunrise-coral: #d4651f;       /* darker variant for AA text on light bg */
   --color-sunrise-amber: #a04717;       /* even darker — for very small text only */
 
+  /* Messaging channel — darker than WhatsApp's marketing green so white text stays AA. */
+  --color-whatsapp: #08775b;
+  --color-whatsapp-hover: #075e54;
+
   /* Neutrals (sand evokes Senegalese beaches — avoid cold pure white) */
   --color-sand: #f7f5f0;
   --color-sand-deep: #ede8de;
@@ -73,15 +77,17 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--color-navy);
-  text-wrap: balance;
-}
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--color-navy);
+    text-wrap: balance;
+  }
 
-p { text-wrap: pretty; }
+  p { text-wrap: pretty; }
+}
 
 ::selection {
   background-color: var(--color-ocean);

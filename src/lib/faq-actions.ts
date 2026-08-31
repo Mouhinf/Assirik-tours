@@ -96,6 +96,37 @@ export async function reorderFaqItemsAction(formData: FormData) {
     .map((s) => s.trim())
     .filter(Boolean);
   if (orderedIds.length === 0) return { error: "Liste invalide." };
+  if (new Set(orderedIds).size !== orderedIds.length) {
+    return { error: "La liste contient des doublons." };
+  }
+
+  const rows = await prisma.faqItem.findMany({
+    where: { id: { in: orderedIds } },
+    select: { id: true, category: true, locale: true },
+  });
+  if (rows.length !== orderedIds.length) {
+    return { error: "Une ou plusieurs questions sont introuvables." };
+  }
+
+  const scope = rows[0];
+  const sameScope = rows.every(
+    (row) =>
+      row.category === scope.category && row.locale === scope.locale,
+  );
+  if (!sameScope) {
+    return {
+      error: "Le réordonnancement doit rester dans une langue et une catégorie.",
+    };
+  }
+
+  const scopeCount = await prisma.faqItem.count({
+    where: { category: scope.category, locale: scope.locale },
+  });
+  if (scopeCount !== orderedIds.length) {
+    return {
+      error: "La liste est incomplète. Rechargez la page avant de réessayer.",
+    };
+  }
 
   await prisma.$transaction(
     orderedIds.map((id, order) =>
@@ -105,7 +136,11 @@ export async function reorderFaqItemsAction(formData: FormData) {
   await recordAudit({
     userId: session.sub,
     action: "faq.reorder",
-    metadata: { count: orderedIds.length },
+    metadata: {
+      count: orderedIds.length,
+      category: scope.category,
+      locale: scope.locale,
+    },
   });
 
   revalidatePath("/admin/faq");

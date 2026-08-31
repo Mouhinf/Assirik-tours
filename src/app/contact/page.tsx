@@ -89,7 +89,7 @@ export default function ContactPage() {
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-[#25D366] hover:underline"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-whatsapp hover:underline"
               >
                 Ou écrivez-nous directement sur WhatsApp →
               </a>

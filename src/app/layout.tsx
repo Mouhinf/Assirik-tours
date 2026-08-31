@@ -96,7 +96,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
-        <SiteNav />
+        <SiteNav locale={locale} />
         <main className="flex-1">{children}</main>
         <SiteFooter />
         <WhatsAppFab />

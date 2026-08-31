@@ -190,3 +190,52 @@ export function buildReviewsJsonLd(reviews: ReviewableForSeo[]) {
     })),
   };
 }
+
+/**
+ * FAQPage JSON-LD — Schema.org Question/acceptedAnswer list.
+ *
+ * We are generous on count (Google accepts up to ~50 questions per page
+ * but we cap at 30 to stay kind to the rich-result tester) and skip
+ * empty answer bodies. Markdown markers are stripped from the rendered
+ * snippet so the JSON-LD reads clean.
+ */
+export type FaqForSeo = {
+  question: string;
+  answer: string;
+};
+
+export function buildFaqJsonLd(faqs: FaqForSeo[]) {
+  const list = (faqs ?? [])
+    .filter((f) => f.question.trim().length > 0 && f.answer.trim().length > 0)
+    .slice(0, 30);
+
+  if (list.length === 0) return null;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: list.map((f) => ({
+      "@type": "Question",
+      name: f.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: stripMarkdown(f.answer),
+      },
+    })),
+  };
+}
+
+/**
+ * Reduce Markdown to a plain-text approximation: drop emphasis/list markers,
+ * but keep ##/### headings as text (they help both humans and the
+ * rich-result tester).
+ */
+function stripMarkdown(input: string): string {
+  return input
+    .replace(/^#{2,3}[ \t]+/gm, "")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/(^|[^\\])\*(?!\s)([^*\n]+)\*(?!\*)/g, "$1$2")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1 ($2)")
+    .replace(/^[ \t]*- /gm, "• ")
+    .trim();
+}

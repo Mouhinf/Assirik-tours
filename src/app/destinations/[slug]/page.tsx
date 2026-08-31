@@ -151,7 +151,7 @@ export default async function DestinationDetailPage({ params }: { params: Params
                 href={whatsappLink(`Bonjour Assirik Tours, j'aimerais des informations sur un voyage à ${dest.title}.`)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#1ebe57] transition-colors"
+                className="mt-4 inline-flex items-center gap-2 rounded-full bg-whatsapp px-5 py-2.5 text-sm font-semibold text-sand hover:bg-whatsapp-hover transition-colors"
               >
                 Discuter sur WhatsApp
               </a>

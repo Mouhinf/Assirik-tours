@@ -82,7 +82,7 @@ export function renderInlineMarkdown(input: string): string {
 
   // Unordered lists — lines beginning with '- '
   const lines = html.split("\n");
-  let out: string[] = [];
+  const out: string[] = [];
   let inList = false;
   for (const line of lines) {
     const trimmed = line.trim();

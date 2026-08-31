@@ -1,4 +1,3 @@
-import { logoutAction } from "@/lib/auth-actions";
 import { cn } from "@/lib/utils";
 
 export function AdminTopbar({
@@ -29,7 +28,7 @@ export function AdminTopbar({
         <form action={logoutAction}>
           <button
             type="submit"
-            className="text-sm font-medium text-graphite hover:text-navy transition-colors"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-graphite transition-colors hover:text-navy"
           >
             Se déconnecter
           </button>

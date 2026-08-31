@@ -69,7 +69,7 @@ export function AdminSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-[0.85rem] transition-colors",
+                "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-[0.85rem] transition-colors",
                 active
                   ? "bg-white/10 text-sand"
                   : "text-mist/75 hover:bg-white/5 hover:text-sand",
@@ -88,7 +88,7 @@ export function AdminSidebar() {
             onClick={() => setContenuOpen((v) => !v)}
             aria-expanded={contenuOpen}
             className={cn(
-              "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[0.85rem] transition-colors",
+              "flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-[0.85rem] transition-colors",
               contenuActive
                 ? "text-sand"
                 : "text-mist/75 hover:bg-white/5 hover:text-sand",
@@ -122,7 +122,7 @@ export function AdminSidebar() {
               {contenuSubItems.map((item) => {
                 const active = pathname.startsWith(item.href);
                 const baseClasses = cn(
-                  "flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[0.82rem] transition-colors",
+                  "flex min-h-11 items-center gap-2.5 rounded-md px-3 py-1.5 text-[0.82rem] transition-colors",
                   item.enabled
                     ? active
                       ? "bg-white/10 text-sand"
@@ -167,7 +167,7 @@ export function AdminSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-[0.85rem] transition-colors",
+                "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-[0.85rem] transition-colors",
                 active
                   ? "bg-white/10 text-sand"
                   : "text-mist/75 hover:bg-white/5 hover:text-sand",

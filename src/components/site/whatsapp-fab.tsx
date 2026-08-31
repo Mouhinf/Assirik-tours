@@ -26,7 +26,7 @@ export function WhatsAppFab() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Contacter Assirik Tours sur WhatsApp"
-      className={`fixed bottom-5 right-5 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lift transition-all duration-300 hover:scale-105 hover:bg-[#1ebe57] focus-visible:outline-[#25D366] ${
+      className={`fixed bottom-5 right-5 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-sand shadow-lift transition-all duration-300 hover:scale-105 hover:bg-whatsapp-hover focus-visible:outline-whatsapp ${
         visible
           ? "opacity-100 translate-y-0"
           : "opacity-0 translate-y-3 pointer-events-none"

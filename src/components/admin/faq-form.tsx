@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
+import { FaqCategoryIcon } from "@/components/faq-category-icon";
 import { saveFaqItemAction } from "@/lib/faq-actions";
 import {
   FAQ_CATEGORIES,
@@ -77,7 +79,7 @@ export function FaqForm({
             <select
               value={locale}
               onChange={(e) => setLocale(e.target.value as Locale)}
-              className="w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-sm text-navy focus:border-ocean outline-none"
+              className="min-h-11 w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-base text-navy outline-none focus:border-ocean md:text-sm"
             >
               <option value="fr">Français</option>
               <option value="en">English</option>
@@ -88,17 +90,24 @@ export function FaqForm({
             <span className="block text-xs font-semibold uppercase tracking-wider text-graphite mb-1.5">
               Catégorie
             </span>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as Category)}
-              className="w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-sm text-navy focus:border-ocean outline-none"
-            >
-              {FAQ_CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {categoryLabels[c]}
-                </option>
-              ))}
-            </select>
+            <span className="relative block">
+              <FaqCategoryIcon
+                category={category}
+                size={18}
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ocean"
+              />
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value as Category)}
+                className="min-h-11 w-full rounded-lg border border-sand-deep bg-sand py-2.5 pl-10 pr-3 text-base text-navy outline-none focus:border-ocean md:text-sm"
+              >
+                {FAQ_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {categoryLabels[c]}
+                  </option>
+                ))}
+              </select>
+            </span>
           </label>
 
           <label className="block sm:col-span-2">
@@ -110,7 +119,7 @@ export function FaqForm({
               name="order"
               min={0}
               defaultValue={initial?.order ?? 0}
-              className="w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-sm text-navy focus:border-ocean outline-none"
+              className="min-h-11 w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-base text-navy outline-none focus:border-ocean md:text-sm"
             />
           </label>
         </div>
@@ -126,14 +135,16 @@ export function FaqForm({
             <input
               name="question"
               required
+              minLength={5}
               maxLength={200}
+              aria-describedby="faq-question-count"
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               placeholder="Ex : Combien de temps à l'avance réserver un vol ?"
-              className="w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-sm text-navy focus:border-ocean outline-none transition-colors"
+              className="min-h-11 w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-base text-navy outline-none transition-colors focus:border-ocean md:text-sm"
             />
           </label>
-          <p className="mt-1 text-xs text-silver">
+          <p id="faq-question-count" className="mt-1 text-xs text-silver">
             {question.length} / 200 caractères
           </p>
         </div>
@@ -141,7 +152,7 @@ export function FaqForm({
 
       <section className="rounded-xl border border-sand-deep bg-sand p-5">
         <h3 className="font-display text-base font-semibold text-navy">Réponse</h3>
-        <p className="mt-1 text-xs text-silver">
+        <p id="faq-answer-help" className="mt-1 text-xs text-silver">
           Markdown léger autorisé : <code>**gras**</code>, <code>*italique*</code>,{" "}
           <code>- liste à puces</code>, <code>[label](url)</code>, lignes vides pour paragraphes.
         </p>
@@ -153,40 +164,47 @@ export function FaqForm({
             <textarea
               name="answer"
               required
+              minLength={20}
               maxLength={3000}
+              aria-describedby="faq-answer-help faq-answer-count"
               rows={12}
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               placeholder="Rédigez la réponse ici…"
-              className="w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-sm text-navy focus:border-ocean outline-none transition-colors font-mono"
+              className="w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 font-mono text-base text-navy outline-none transition-colors focus:border-ocean"
             />
-            <p className="mt-1 text-xs text-silver">{answer.length} / 3000 caractères</p>
+            <p id="faq-answer-count" className="mt-1 text-xs text-silver">
+              {answer.length} / 3000 caractères
+            </p>
           </label>
 
           <div>
             <span className="block text-xs font-semibold uppercase tracking-wider text-graphite mb-1.5">
               Aperçu rendu
             </span>
-            <div
-              className="min-h-[20rem] rounded-lg border border-sand-deep bg-sand-deep/30 px-4 py-3 text-sm text-graphite leading-relaxed prose prose-sand"
-              dangerouslySetInnerHTML={{ __html: preview || "<p class='italic text-silver'>Aucun contenu.</p>" }}
-            />
+            <div className="min-h-[20rem] rounded-lg border border-sand-deep bg-sand-deep/30 px-4 py-3 text-sm leading-relaxed text-graphite">
+              {preview ? (
+                <div dangerouslySetInnerHTML={{ __html: preview }} />
+              ) : (
+                <p className="text-silver">Aucun contenu.</p>
+              )}
+            </div>
           </div>
         </div>
       </section>
 
-      <label className="inline-flex items-center gap-3 cursor-pointer">
+      <label className="inline-flex min-h-11 cursor-pointer items-center gap-3">
         <input
           type="checkbox"
           checked={isActive}
           onChange={(e) => setIsActive(e.target.checked)}
-          className="h-4 w-4 rounded border-sand-deep text-ocean focus:ring-ocean"
+          className="h-5 w-5 rounded border-sand-deep text-ocean focus:ring-ocean"
         />
         <span className="text-sm text-navy">Active (visible sur le site public)</span>
       </label>
 
       {error && (
-        <p className="rounded-lg bg-sunrise-coral/10 border border-sunrise-coral/30 px-4 py-3 text-sm text-sunrise-coral">
+        <p role="alert" className="rounded-lg bg-sunrise-coral/10 border border-sunrise-coral/30 px-4 py-3 text-sm text-sunrise-coral">
           {error}
         </p>
       )}
@@ -195,7 +213,7 @@ export function FaqForm({
         <button
           type="submit"
           disabled={isPending}
-          className="inline-flex items-center gap-2 rounded-full bg-ocean px-6 py-2.5 text-sm font-semibold text-sand hover:bg-navy transition-colors disabled:opacity-60"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ocean px-6 py-2.5 text-sm font-semibold text-sand transition-colors hover:bg-navy disabled:cursor-wait disabled:opacity-60"
         >
           {isPending
             ? "Enregistrement…"
@@ -203,6 +221,12 @@ export function FaqForm({
             ? "Créer la question"
             : "Enregistrer"}
         </button>
+        <Link
+          href="/admin/faq"
+          className="inline-flex min-h-11 items-center px-2 text-sm font-semibold text-graphite hover:text-navy"
+        >
+          Annuler
+        </Link>
       </div>
     </form>
   );

@@ -53,5 +53,34 @@
       "destination": "Destination",
       "reset": "Réinitialiser"
     }
+  },
+  "faq": {
+    "page_title": "Questions fréquentes | Assirik Tours",
+    "page_description": "Tout ce que vous devez savoir avant de réserver avec Assirik Tours : délais de visa, modes de paiement, Omra & Hajj, vols, services et conditions.",
+    "hero_eyebrow": "FAQ",
+    "hero_title": "Les réponses aux questions qu'on nous pose le plus",
+    "hero_description": "Si vous ne trouvez pas la vôtre, contactez-nous directement — la réponse pourra être ajoutée ici.",
+    "categories_label": "Catégories de questions",
+    "all_categories": "Toutes",
+    "search_placeholder": "Rechercher une question…",
+    "search_label": "Filtrer",
+    "clear_filters": "Effacer la recherche et les filtres",
+    "no_results": "Aucune question ne correspond à votre recherche.",
+    "items_count_zero": "0 question",
+    "items_count_one": "1 question",
+    "items_count_many": "{count} questions",
+    "contact_cta": "Une autre question ?",
+    "contact_description": "Écrivez-nous sur WhatsApp ou envoyez votre demande. Un conseiller vous répond pendant les heures d’ouverture.",
+    "contact_button": "Nous contacter",
+    "whatsapp_button": "Écrire sur WhatsApp",
+    "whatsapp_message": "Bonjour Assirik Tours, j'ai une question…",
+    "categories": {
+      "general": "Général",
+      "payment": "Paiement",
+      "visa": "Visa",
+      "flight": "Vols",
+      "omra": "Omra & Hajj",
+      "services": "Services"
+    }
   }
 }

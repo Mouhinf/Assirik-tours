@@ -53,5 +53,34 @@
       "destination": "Destination",
       "reset": "Reset"
     }
+  },
+  "faq": {
+    "page_title": "Frequently asked questions | Assirik Tours",
+    "page_description": "Everything you need to know before booking with Assirik Tours: visa timelines, payment methods, Umrah & Hajj, flights, services and conditions.",
+    "hero_eyebrow": "FAQ",
+    "hero_title": "Answers to the questions we hear most often",
+    "hero_description": "If yours isn't here, contact us directly — the answer may end up on this page.",
+    "categories_label": "Question categories",
+    "all_categories": "All",
+    "search_placeholder": "Search a question…",
+    "search_label": "Filter",
+    "clear_filters": "Clear search and filters",
+    "no_results": "No question matches your search.",
+    "items_count_zero": "0 questions",
+    "items_count_one": "1 question",
+    "items_count_many": "{count} questions",
+    "contact_cta": "Another question?",
+    "contact_description": "Message us on WhatsApp or send your request. A travel consultant will reply during business hours.",
+    "contact_button": "Contact us",
+    "whatsapp_button": "Message us on WhatsApp",
+    "whatsapp_message": "Hello Assirik Tours, I have a question…",
+    "categories": {
+      "general": "General",
+      "payment": "Payment",
+      "visa": "Visa",
+      "flight": "Flights",
+      "omra": "Umrah & Hajj",
+      "services": "Services"
+    }
   }
 }

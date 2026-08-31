@@ -20,6 +20,9 @@ export function AdminReorderFaqs({
 }) {
   const [ordered, setOrdered] = useState(items);
   const [isPending, startTransition] = useTransition();
+  const [dirty, setDirty] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   function move(idx: number, dir: -1 | 1) {
@@ -30,14 +33,29 @@ export function AdminReorderFaqs({
       [next[idx], next[target]] = [next[target], next[idx]];
       return next;
     });
+    setDirty(true);
+    setMessage(null);
+    setError(null);
   }
 
   function save() {
     const fd = new FormData();
     fd.append("orderedIds", ordered.map((o) => o.id).join(","));
     startTransition(async () => {
-      await reorderFaqItemsAction(fd);
-      router.refresh();
+      setError(null);
+      setMessage(null);
+      try {
+        const result = await reorderFaqItemsAction(fd);
+        if ("error" in result) {
+          setError(result.error ?? "Enregistrement impossible.");
+          return;
+        }
+        setDirty(false);
+        setMessage("Ordre enregistré.");
+        router.refresh();
+      } catch {
+        setError("Enregistrement impossible. Rechargez la page et réessayez.");
+      }
     });
   }
 
@@ -55,8 +73,8 @@ export function AdminReorderFaqs({
         <button
           type="button"
           onClick={save}
-          disabled={isPending}
-          className="rounded-full bg-ocean px-4 py-1.5 text-sm font-semibold text-sand hover:bg-navy transition-colors disabled:opacity-60"
+          disabled={isPending || !dirty}
+          className="inline-flex min-h-11 items-center rounded-full bg-ocean px-4 py-2 text-sm font-semibold text-sand transition-colors hover:bg-navy disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isPending ? "Enregistrement…" : "Enregistrer l'ordre"}
         </button>
@@ -75,8 +93,8 @@ export function AdminReorderFaqs({
                 type="button"
                 onClick={() => move(idx, -1)}
                 disabled={idx === 0}
-                aria-label="Monter"
-                className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-sand-deep bg-sand text-graphite hover:text-navy disabled:opacity-40"
+                aria-label={`Monter « ${it.label} »`}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-sand-deep bg-sand text-graphite hover:text-navy disabled:opacity-40"
               >
                 <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2}>
                   <path d="M5 15l7-7 7 7" strokeLinecap="round" strokeLinejoin="round" />
@@ -86,8 +104,8 @@ export function AdminReorderFaqs({
                 type="button"
                 onClick={() => move(idx, 1)}
                 disabled={idx === ordered.length - 1}
-                aria-label="Descendre"
-                className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-sand-deep bg-sand text-graphite hover:text-navy disabled:opacity-40"
+                aria-label={`Descendre « ${it.label} »`}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-sand-deep bg-sand text-graphite hover:text-navy disabled:opacity-40"
               >
                 <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2}>
                   <path d="M5 9l7 7 7-7" strokeLinecap="round" strokeLinejoin="round" />
@@ -97,6 +115,16 @@ export function AdminReorderFaqs({
           </li>
         ))}
       </ol>
+      {error ? (
+        <p role="alert" className="text-sm text-sunrise-coral">
+          {error}
+        </p>
+      ) : null}
+      {message ? (
+        <p role="status" className="text-sm font-medium text-ocean">
+          {message}
+        </p>
+      ) : null}
     </section>
   );
 }

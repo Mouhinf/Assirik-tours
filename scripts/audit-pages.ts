@@ -14,12 +14,18 @@ const PAGES = [
   { path: "/mentions-legales", name: "Mentions légales" },
   { path: "/cgv", name: "CGV" },
   { path: "/temoignages", name: "Témoignages" },
+  { path: "/faq", name: "FAQ" },
 ];
 
 async function auditPage(page, url, name) {
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
   // Wait a bit for hydration
   await new Promise((r) => setTimeout(r, 1500));
+
+  // tsx/esbuild names nested browser callbacks with this helper. Puppeteer
+  // serializes the callback without the module prelude, so expose the tiny
+  // helper in the page realm before evaluating the audit function.
+  await page.evaluate("globalThis.__name = (target, value) => target;");
 
   const result = await page.evaluate(() => {
     const find = (sel) => document.querySelector(sel);
@@ -60,7 +66,7 @@ async function auditPage(page, url, name) {
     const linksWithoutText = findAll("a").filter((a) => {
       const txt = (a.innerText ?? "").trim();
       const aria = a.getAttribute("aria-label") ?? "";
-      return !txt && !aria && !findAll("img", a).length;
+      return !txt && !aria && !a.querySelector("img");
     }).length;
 
     return {
@@ -102,8 +108,9 @@ function computeScore(r) {
   return { score: Math.max(0, s), issues };
 }
 
-const BASE = "https://assirik-tours.vercel.app";
+const BASE = process.env.AUDIT_BASE_URL ?? "https://assirik-tours.vercel.app";
 
+async function main() {
 const browser = await puppeteer.launch({
   headless: true,
   args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
@@ -139,4 +146,9 @@ for (const r of results) {
 }
 
 await browser.close();
-process.exit(0);
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

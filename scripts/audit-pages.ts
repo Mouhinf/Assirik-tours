@@ -13,6 +13,7 @@ const PAGES = [
   { path: "/contact", name: "Contact" },
   { path: "/mentions-legales", name: "Mentions légales" },
   { path: "/cgv", name: "CGV" },
+  { path: "/temoignages", name: "Témoignages" },
 ];
 
 async function auditPage(page, url, name) {

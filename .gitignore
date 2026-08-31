@@ -42,3 +42,4 @@ puppeteer-cache
 
 # Reports
 reports/
+.env*

@@ -205,7 +205,14 @@ model Testimonial {
   rating    Int      @default(5)
   tripSlug  String?
   approved  Boolean  @default(false)
+  locale    String   @default("fr")        // "fr" | "en" — display language
+  avatarId  String?                        // Cloudinary public_id (avatar optionnel)
+  dateTrip  DateTime?                      // date du voyage (optionnel, jamais dans le futur)
+  order     Int      @default(0)           // tri manuel sur la home
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([approved, locale, order])
 }
 // ── RBAC extensions ─────────────────────────────────────────────
 

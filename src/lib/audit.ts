@@ -38,7 +38,12 @@ export type AuditAction =
   | "testimonial.update"
   | "testimonial.delete"
   | "testimonial.approve.toggle"
-  | "testimonial.reorder";
+  | "testimonial.reorder"
+  | "faq.create"
+  | "faq.update"
+  | "faq.delete"
+  | "faq.toggle"
+  | "faq.reorder";
 
 export async function recordAudit(opts: {
   userId?: string | null;

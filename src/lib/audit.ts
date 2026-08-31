@@ -33,7 +33,12 @@ export type AuditAction =
   | "media.delete"
   | "settings.update"
   | "user.create"
-  | "user.update";
+  | "user.update"
+  | "testimonial.create"
+  | "testimonial.update"
+  | "testimonial.delete"
+  | "testimonial.approve.toggle"
+  | "testimonial.reorder";
 
 export async function recordAudit(opts: {
   userId?: string | null;

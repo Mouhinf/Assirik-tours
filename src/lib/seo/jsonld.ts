@@ -126,3 +126,67 @@ export function breadcrumbJsonLd(items: Array<{ name: string; url: string }>) {
     })),
   };
 }
+
+/**
+ * Reviews / AggregateRating JSON-LD for Google rich results.
+ *
+ * Schema.org expects reviews to be tied to a thing — we use the TravelAgency
+ * organization as the subject (the legal schema is identical to what we
+ * already declared in `organizationJsonLd.aggregateRating`, but here it's
+ * generated dynamically from real approved Testimonial rows).
+ *
+ * Google caps visible reviews at ~10 per rich result; we slice to keep the
+ * payload lean and let the rest live as plain HTML.
+ */
+export type ReviewableForSeo = {
+  author: string;
+  rating: number;
+  content: string;
+  dateTrip?: Date | string | null;
+  locale: "fr" | "en";
+};
+
+export function buildReviewsJsonLd(reviews: ReviewableForSeo[]) {
+  const list = (reviews ?? [])
+    .filter((r) => Number.isFinite(r.rating) && r.rating >= 1 && r.rating <= 5)
+    .slice(0, 10);
+
+  if (list.length === 0) return null;
+
+  const avg =
+    list.reduce((acc, r) => acc + r.rating, 0) / list.length;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "TravelAgency",
+    "@id": `${SITE_URL}/#organization`,
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: avg.toFixed(1),
+      reviewCount: list.length,
+      bestRating: "5",
+      worstRating: "1",
+    },
+    review: list.map((r) => ({
+      "@type": "Review",
+      author: {
+        "@type": "Person",
+        name: r.author,
+      },
+      dateReviewed:
+        r.dateTrip instanceof Date
+          ? r.dateTrip.toISOString().slice(0, 10)
+          : typeof r.dateTrip === "string"
+          ? r.dateTrip.slice(0, 10)
+          : undefined,
+      reviewBody: r.content,
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: r.rating,
+        bestRating: "5",
+        worstRating: "1",
+      },
+      inLanguage: r.locale === "en" ? "en" : "fr-FR",
+    })),
+  };
+}

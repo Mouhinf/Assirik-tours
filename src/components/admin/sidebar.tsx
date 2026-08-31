@@ -14,6 +14,7 @@ const navItems = [
   { href: "/admin/destinations", label: "Destinations", icon: "map" },
   { href: "/admin/offres", label: "Offres", icon: "ticket" },
   { href: "/admin/media", label: "Médiathèque", icon: "image" },
+  { href: "/admin/temoignages", label: "Témoignages", icon: "quote" },
   { href: "/admin/communications", label: "Communications", icon: "megaphone" },
   { href: "/admin/rapports", label: "Rapports", icon: "chart" },
   { href: "/admin/audit", label: "Audit log", icon: "log" },
@@ -94,6 +95,14 @@ function Icon({ name }: { name: string }) {
       return <svg {...common}><path d="M3 11l18-5v12L3 13v-2z"/><path d="M11.6 16.8a3 3 0 11-5.8-1.6"/></svg>;
     case "shield":
       return <svg {...common}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
+    case "quote":
+      return (
+        <svg {...common}>
+          <path d="M7 8a3 3 0 00-3 3v5h5v-5H6a2 2 0 012-2V8z" fill="currentColor" stroke="none" />
+          <path d="M16 8a3 3 0 00-3 3v5h5v-5h-3a2 2 0 012-2V8z" fill="currentColor" stroke="none" />
+          <path d="M7 8a3 3 0 00-3 3v5h5v-5H6m10-3a3 3 0 00-3 3v5h5v-5h-3" />
+        </svg>
+      );
     default:
       return null;
   }

@@ -22,6 +22,8 @@ const MATRIX: Record<AdminRole, Set<string>> = {
     "reports:read",
     "communications:send",
     "audit:read",
+    "testimonials:read", "testimonials:write", "testimonials:approve",
+    "testimonials:delete", "testimonials:reorder",
   ]),
   AGENT: new Set([
     "dashboard:view",
@@ -33,6 +35,7 @@ const MATRIX: Record<AdminRole, Set<string>> = {
     "media:read", "media:write",
     "settings:read",
     "reports:read",
+    "testimonials:read", "testimonials:write", "testimonials:approve",
   ]),
   COMPTABLE: new Set([
     "dashboard:view",

@@ -1,33 +1,49 @@
 import Link from "next/link";
+import { resolveBlogCover } from "@/lib/blog";
+import {
+  BLOG_CATEGORY_LABELS_FR,
+  BLOG_CATEGORY_LABELS_EN,
+  type BlogCategory,
+} from "@/lib/validators/blog";
 
-const CATEGORY_LABELS_FR: Record<string, string> = {
-  guides: "Guide",
-  actualites: "Actualité",
-  destinations: "Destination",
+export type BlogPostCardProps = {
+  slug: string;
+  locale?: "fr" | "en";
+  title: string;
+  excerpt: string;
+  category: string | null;
+  tags?: string[];
+  publishedAt: Date | string | null;
+  readingTime?: number | null;
+  coverImageId: string;
+  author?: string | null;
 };
 
 export function BlogPostCard({
   slug,
+  locale = "fr",
   title,
   excerpt,
   category,
   publishedAt,
-  readingMinutes,
-  cover,
-}: {
-  slug: string;
-  title: string;
-  excerpt: string;
-  category: string;
-  publishedAt: string;
-  readingMinutes: number;
-  cover: string;
-}) {
-  const date = new Date(publishedAt).toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  readingTime,
+  coverImageId,
+}: BlogPostCardProps) {
+  const date = publishedAt
+    ? new Date(publishedAt).toLocaleDateString(locale === "en" ? "en-GB" : "fr-FR", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : "";
+
+  const labels =
+    locale === "en" ? BLOG_CATEGORY_LABELS_EN : BLOG_CATEGORY_LABELS_FR;
+  const catLabel =
+    category && (labels as Record<string, string>)[category]
+      ? (labels as Record<string, string>)[category as BlogCategory]
+      : null;
+
   return (
     <Link
       href={`/blog/${slug}`}
@@ -36,19 +52,22 @@ export function BlogPostCard({
       <div className="relative aspect-[16/10] overflow-hidden bg-sand-deep">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={cover}
+          src={resolveBlogCover(coverImageId, { width: 800 })}
           alt={title}
           loading="lazy"
           decoding="async"
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
         />
-        <span className="absolute top-3 left-3 inline-flex items-center rounded-full bg-sand/90 px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-wider text-navy backdrop-blur">
-          {CATEGORY_LABELS_FR[category] ?? category}
-        </span>
+        {catLabel ? (
+          <span className="absolute top-3 left-3 inline-flex items-center rounded-full bg-sand/90 px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-wider text-navy backdrop-blur">
+            {catLabel}
+          </span>
+        ) : null}
       </div>
       <div className="p-5">
         <p className="text-xs text-graphite">
-          <time dateTime={publishedAt}>{date}</time> · {readingMinutes} min de lecture
+          {date ? <time dateTime={String(publishedAt)}>{date}</time> : null}
+          {readingTime ? ` · ${readingTime} min de lecture` : ""}
         </p>
         <h3 className="mt-2 font-display text-lg font-semibold text-navy group-hover:text-ocean transition-colors text-balance">
           {title}

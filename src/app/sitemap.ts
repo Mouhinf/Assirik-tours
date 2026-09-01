@@ -4,13 +4,17 @@ import { prisma } from "@/lib/prisma";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://assiriktours.sn";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [destinations, offers] = await Promise.all([
+  const [destinations, offers, posts] = await Promise.all([
     prisma.destination.findMany({
       where: { published: true },
       select: { slug: true, updatedAt: true },
     }),
     prisma.offer.findMany({
       where: { published: true },
+      select: { slug: true, updatedAt: true },
+    }),
+    prisma.blogPost.findMany({
+      where: { locale: "fr", publishedAt: { not: null } },
       select: { slug: true, updatedAt: true },
     }),
   ]);
@@ -46,5 +50,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...destinationPages, ...offerPages];
+  const blogPages: MetadataRoute.Sitemap = posts.map((p) => ({
+    url: `${SITE_URL}/blog/${p.slug}`,
+    lastModified: p.updatedAt,
+    changeFrequency: "weekly",
+    priority: 0.6,
+  }));
+
+  return [...staticPages, ...destinationPages, ...offerPages, ...blogPages];
 }

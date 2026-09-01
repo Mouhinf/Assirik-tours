@@ -43,7 +43,30 @@ export type AuditAction =
   | "faq.update"
   | "faq.delete"
   | "faq.toggle"
-  | "faq.reorder";
+  | "faq.reorder"
+  | "gallery.create"
+  | "gallery.update"
+  | "gallery.delete"
+  | "gallery.toggle"
+  | "gallery.featured.toggle"
+  | "gallery.reorder"
+  | "blog.create"
+  | "blog.update"
+  | "blog.publish"
+  | "blog.unpublish"
+  | "blog.delete"
+  | "blog.featured.toggle"
+  | "blog.duplicate"
+  | "page.create"
+  | "page.update"
+  | "page.delete"
+  | "flight.search"
+  | "flight.quote.request"
+  | "flight.reservation.create"
+  | "communication.sent"
+  | "communication.failed"
+  | "campaign.create"
+  | "campaign.send";
 
 export async function recordAudit(opts: {
   userId?: string | null;

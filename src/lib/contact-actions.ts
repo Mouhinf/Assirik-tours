@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { siteConfig } from "@/lib/site-config";
 import { whatsappLink } from "@/lib/whatsapp";
+import { notifyAgency } from "@/lib/communications-actions";
 
 export type ContactFormState =
   | { ok: true; reference: string }
@@ -58,9 +59,12 @@ export async function submitContactAction(
     },
   });
 
-  // Notify agency via WhatsApp — best-effort, opens a tab.
-  // The agent receives a notification in the admin "Réservations" page too.
-  void whatsappLink;
+  // Notify agency by email (best-effort, non-blocking).
+  void notifyAgency({
+    templateId: "contact.form_submitted",
+    vars: { firstName, lastName, email, phone, message },
+    metadata: { reference },
+  });
 
   return { ok: true, reference };
 }

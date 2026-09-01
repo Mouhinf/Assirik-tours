@@ -82,5 +82,151 @@
       "omra": "Umrah & Hajj",
       "services": "Services"
     }
+  },
+  "gallery": {
+    "page_title": "Gallery | Assirik Tours",
+    "page_description": "Photos of our destinations and trips: Senegal, Umrah, Morocco, Turkey, Dubai. Editorial picks, not generic stock.",
+    "page_eyebrow": "Gallery",
+    "page_heading": "A few pictures from our destinations",
+    "page_description_long": "A visual snapshot of Senegal and our international trips — editorial photography chosen to set the tone.",
+    "upload_cta": "Add a photo",
+    "bulk_upload_cta": "Bulk upload",
+    "no_items": "The gallery is being curated — check back soon.",
+    "filters": {
+      "region": "Region",
+      "featured_only": "Featured only"
+    },
+    "featured_badge": "★ Featured"
+  },
+  "blog": {
+    "page_title": "Blog | Assirik Tours",
+    "page_description": "Practical guides, destinations, visa, Umrah: our articles to prepare a trip from Senegal.",
+    "categories": {
+      "guides-pratiques": "Practical guides",
+      "destinations": "Destinations",
+      "visa": "Visa",
+      "omra": "Umrah & Hajj",
+      "actualites": "News"
+    },
+    "filters": {
+      "category": "Category",
+      "tag": "Tag",
+      "all": "All"
+    },
+    "article": {
+      "published_on": "Published on {date}",
+      "updated_on": "Updated on {date}",
+      "reading_time": "{minutes} min read",
+      "by": "by {author}",
+      "tags_label": "Tags:",
+      "related": "Read also",
+      "share": "Share",
+      "copy_link": "Copy link",
+      "link_copied": "Link copied ✓"
+    },
+    "admin": {
+      "new_post": "New post",
+      "draft": "Draft",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "duplicate": "Duplicate (translate)",
+      "featured": "Featured",
+      "preview": "Preview"
+    }
+  },
+  "pages": {
+    "admin_title": "Editorial pages",
+    "edit": "Edit",
+    "preview": "Preview",
+    "add_block": "Add block",
+    "save": "Save",
+    "saved": "Saved",
+    "active": "Active",
+    "inactive": "Inactive",
+    "block_types": {
+      "hero": "Hero",
+      "text": "Text",
+      "two-column": "Two columns",
+      "stats": "Stats",
+      "team-grid": "Team grid",
+      "service-list": "Service list",
+      "image": "Image",
+      "cta-banner": "CTA banner",
+      "rich-text": "Rich text"
+    }
+  },
+  "flight": {
+    "search_title": "Find your flight",
+    "search_description": "Search across hundreds of airlines, finalise with a consultant.",
+    "form": {
+      "origin": "Departure",
+      "destination": "Destination",
+      "depart_date": "Departure date",
+      "return_date": "Return date",
+      "round_trip": "Round trip",
+      "one_way": "One way",
+      "passengers": "Passengers",
+      "cabin_class": "Cabin class",
+      "search": "Search",
+      "any_airport": "Any airport"
+    },
+    "results": {
+      "title": "{count} flight(s) found",
+      "no_results": "No flight matches your search.",
+      "sort_by": "Sort by",
+      "sort_price": "Price",
+      "sort_duration": "Duration",
+      "sort_departure": "Departure",
+      "duration": "{hours}h{minutes}",
+      "stops": "{count} stop(s)",
+      "direct": "Direct",
+      "select": "Select this flight",
+      "request_quote": "Request a quote"
+    },
+    "quote": {
+      "title": "Quote request sent",
+      "description": "A consultant will get back to you within 24 business hours.",
+      "back_to_search": "New search"
+    },
+    "admin": {
+      "searches_list": "Recent searches",
+      "create_reservation": "Create a reservation from this offer",
+      "no_searches": "No searches yet."
+    }
+  },
+  "communications": {
+    "admin_title": "Communications",
+    "tabs": {
+      "templates": "Templates",
+      "campaigns": "Newsletter campaigns",
+      "history": "History"
+    },
+    "template": {
+      "channels": "Canaux",
+      "test_send": "Tester l'envoi",
+      "test_recipient": "Destinataire du test",
+      "variables_help": "Variables disponibles : {vars}",
+      "sent_test": "Test envoyé à {recipient}"
+    },
+    "campaign": {
+      "new": "Nouvelle campagne",
+      "subject_fr": "Sujet (FR)",
+      "subject_en": "Sujet (EN)",
+      "body_fr": "Corps (FR)",
+      "body_en": "Corps (EN)",
+      "audience": "Audience",
+      "audience_options": {
+        "all": "Tous les clients",
+        "vip": "Clients VIP",
+        "tag": "Par tag",
+        "manual": "Liste manuelle"
+      },
+      "schedule": "Programmation",
+      "schedule_now": "Immédiate",
+      "schedule_later": "Programmée",
+      "send_test": "Envoyer un test",
+      "send_now": "Envoyer maintenant",
+      "schedule_btn": "Programmer"
+    }
   }
 }

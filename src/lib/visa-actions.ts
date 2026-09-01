@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/auth-actions";
 import { recordAudit } from "@/lib/audit";
 import { uploadBuffer, deleteAsset } from "@/lib/cloudinary";
+import { dispatchTemplate, notifyAgency } from "@/lib/communications-actions";
 
 const VISA_DESTINATIONS = [
   "Schengen", "France", "Belgique", "Allemagne", "Espagne", "Italie",
@@ -79,6 +80,32 @@ export async function createVisaDossierAction(
     metadata: { reference, destination, feeFCFA },
   });
 
+  // Email client with the list of required documents.
+  const docsList = (REQUIRED_DOCS_BY_DESTINATION[destination] ?? [])
+    .map((d) => `• ${d}`)
+    .join("\n");
+  const deadlineLabel = deadline ? deadline.toLocaleDateString("fr-FR") : "à confirmer";
+  const recipientEmail = client.email && !client.email.startsWith("no-email-")
+    ? client.email
+    : null;
+  if (recipientEmail) {
+    void dispatchTemplate({
+      templateId: "visa.documents_required",
+      channel: "email",
+      to: recipientEmail,
+      toName: `${client.firstName} ${client.lastName}`.trim(),
+      locale: "fr",
+      vars: {
+        clientName: client.firstName,
+        destination,
+        documents: docsList,
+        deadline: deadlineLabel,
+        reference,
+      },
+      metadata: { visaDossierId: dossier.id },
+    });
+  }
+
   revalidatePath("/admin/visa");
   return { ok: true, reference };
 }
@@ -96,6 +123,38 @@ export async function updateVisaStatusAction(formData: FormData) {
     entity: `visa:${id}`,
     metadata: { status },
   });
+
+  // Notify client by email + WhatsApp on status change.
+  // VisaDossier.clientId has no Prisma relation declared — query Client directly.
+  const dossier = await prisma.visaDossier.findUnique({ where: { id } });
+  if (!dossier) return;
+  const c = await prisma.client.findUnique({
+    where: { id: dossier.clientId },
+    select: { email: true, phone: true, firstName: true, lastName: true },
+  });
+  if (c?.email) {
+    void dispatchTemplate({
+      templateId: "visa.status_changed",
+      channel: "email",
+      to: c.email,
+      toName: `${c.firstName} ${c.lastName}`.trim(),
+      locale: "fr",
+      vars: { clientName: c.firstName, reference: dossier.reference, status, notes: "" },
+      metadata: { visaDossierId: id },
+    });
+  }
+  if (c?.phone) {
+    void dispatchTemplate({
+      templateId: "visa.status_changed",
+      channel: "whatsapp",
+      to: c.phone,
+      toName: `${c.firstName} ${c.lastName}`.trim(),
+      locale: "fr",
+      vars: { clientName: c.firstName, reference: dossier.reference, status, notes: "" },
+      metadata: { visaDossierId: id },
+    });
+  }
+
   revalidatePath("/admin/visa");
 }
 

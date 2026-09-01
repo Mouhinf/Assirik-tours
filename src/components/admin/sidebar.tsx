@@ -17,6 +17,7 @@ const primaryItems: Item[] = [
   { href: "/admin/destinations", label: "Destinations", icon: "map" },
   { href: "/admin/offres", label: "Offres", icon: "ticket" },
   { href: "/admin/media", label: "Médiathèque", icon: "image" },
+  { href: "/admin/billetterie", label: "Billetterie", icon: "ticket" },
 ];
 
 type ContenuSubItem = {
@@ -29,8 +30,9 @@ type ContenuSubItem = {
 const contenuSubItems: ContenuSubItem[] = [
   { href: "/admin/temoignages", label: "Témoignages", icon: "quote", enabled: true },
   { href: "/admin/faq", label: "FAQ", icon: "faq", enabled: true },
-  { href: "/admin/blog", label: "Blog", icon: "blog", enabled: false },
-  { href: "/admin/galerie", label: "Galerie", icon: "gallery", enabled: false },
+  { href: "/admin/blog", label: "Blog", icon: "blog", enabled: true },
+  { href: "/admin/pages", label: "Pages", icon: "folder", enabled: true },
+  { href: "/admin/galerie", label: "Galerie", icon: "gallery", enabled: true },
 ];
 
 const trailingItems: Item[] = [

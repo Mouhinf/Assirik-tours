@@ -82,5 +82,151 @@
       "omra": "Omra & Hajj",
       "services": "Services"
     }
+  },
+  "gallery": {
+    "page_title": "Galerie | Assirik Tours",
+    "page_description": "Photos de nos destinations et voyages : Sénégal, Omra, Maroc, Turquie, Dubaï. Aperçu éditorial, pas des photos d'agence génériques.",
+    "page_eyebrow": "Galerie",
+    "page_heading": "Quelques images de nos destinations",
+    "page_description_long": "Aperçu visuel du Sénégal et de nos voyages internationaux. Photographies éditoriales choisies pour donner le ton.",
+    "upload_cta": "Ajouter une photo",
+    "bulk_upload_cta": "Upload en masse",
+    "no_items": "La galerie est en cours de constitution. Revenez bientôt !",
+    "filters": {
+      "region": "Région",
+      "featured_only": "À la une uniquement"
+    },
+    "featured_badge": "★ À la une"
+  },
+  "blog": {
+    "page_title": "Blog | Assirik Tours",
+    "page_description": "Guides pratiques, destinations, visa, Omra : nos articles pour préparer un voyage depuis le Sénégal.",
+    "categories": {
+      "guides-pratiques": "Guides pratiques",
+      "destinations": "Destinations",
+      "visa": "Visa",
+      "omra": "Omra & Hajj",
+      "actualites": "Actualités"
+    },
+    "filters": {
+      "category": "Catégorie",
+      "tag": "Tag",
+      "all": "Tous"
+    },
+    "article": {
+      "published_on": "Publié le {date}",
+      "updated_on": "Mis à jour le {date}",
+      "reading_time": "{minutes} min de lecture",
+      "by": "par {author}",
+      "tags_label": "Tags :",
+      "related": "À lire aussi",
+      "share": "Partager",
+      "copy_link": "Copier le lien",
+      "link_copied": "Lien copié ✓"
+    },
+    "admin": {
+      "new_post": "Nouvel article",
+      "draft": "Brouillon",
+      "publish": "Publier",
+      "unpublish": "Dépublier",
+      "duplicate": "Dupliquer (traduire)",
+      "featured": "À la une",
+      "preview": "Aperçu"
+    }
+  },
+  "pages": {
+    "admin_title": "Pages éditoriales",
+    "edit": "Éditer",
+    "preview": "Aperçu",
+    "add_block": "Ajouter un bloc",
+    "save": "Enregistrer",
+    "saved": "Enregistré",
+    "active": "Active",
+    "inactive": "Inactive",
+    "block_types": {
+      "hero": "Hero",
+      "text": "Texte",
+      "two-column": "Deux colonnes",
+      "stats": "Statistiques",
+      "team-grid": "Équipe",
+      "service-list": "Liste de services",
+      "image": "Image",
+      "cta-banner": "Bandeau CTA",
+      "rich-text": "Texte riche"
+    }
+  },
+  "flight": {
+    "search_title": "Trouvez votre vol",
+    "search_description": "Recherchez parmi des centaines de compagnies, finalisez avec un conseiller.",
+    "form": {
+      "origin": "Départ de",
+      "destination": "Destination",
+      "depart_date": "Date aller",
+      "return_date": "Date retour",
+      "round_trip": "Aller-retour",
+      "one_way": "Aller simple",
+      "passengers": "Passagers",
+      "cabin_class": "Classe",
+      "search": "Rechercher",
+      "any_airport": "Tous les aéroports"
+    },
+    "results": {
+      "title": "{count} vol(s) trouvé(s)",
+      "no_results": "Aucun vol ne correspond à votre recherche.",
+      "sort_by": "Trier par",
+      "sort_price": "Prix",
+      "sort_duration": "Durée",
+      "sort_departure": "Départ",
+      "duration": "{hours}h{minutes}",
+      "stops": "{count} escale(s)",
+      "direct": "Direct",
+      "select": "Sélectionner ce vol",
+      "request_quote": "Demander un devis"
+    },
+    "quote": {
+      "title": "Demande de devis envoyée",
+      "description": "Un conseiller vous contacte sous 24h ouvrées pour finaliser votre réservation.",
+      "back_to_search": "Nouvelle recherche"
+    },
+    "admin": {
+      "searches_list": "Recherches récentes",
+      "create_reservation": "Créer une réservation depuis cette offre",
+      "no_searches": "Aucune recherche enregistrée."
+    }
+  },
+  "communications": {
+    "admin_title": "Communications",
+    "tabs": {
+      "templates": "Templates",
+      "campaigns": "Campagnes newsletter",
+      "history": "Historique"
+    },
+    "template": {
+      "channels": "Canaux",
+      "test_send": "Tester l'envoi",
+      "test_recipient": "Destinataire du test",
+      "variables_help": "Variables disponibles : {vars}",
+      "sent_test": "Test envoyé à {recipient}"
+    },
+    "campaign": {
+      "new": "Nouvelle campagne",
+      "subject_fr": "Sujet (FR)",
+      "subject_en": "Sujet (EN)",
+      "body_fr": "Corps (FR)",
+      "body_en": "Corps (EN)",
+      "audience": "Audience",
+      "audience_options": {
+        "all": "Tous les clients",
+        "vip": "Clients VIP",
+        "tag": "Par tag",
+        "manual": "Liste manuelle"
+      },
+      "schedule": "Programmation",
+      "schedule_now": "Immédiate",
+      "schedule_later": "Programmée",
+      "send_test": "Envoyer un test",
+      "send_now": "Envoyer maintenant",
+      "schedule_btn": "Programmer"
+    }
   }
 }

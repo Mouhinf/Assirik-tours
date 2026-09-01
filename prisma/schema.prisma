@@ -36,18 +36,18 @@ enum DestinationRegion {
 }
 
 model Destination {
-  id          String              @id @default(cuid())
-  slug        String              @unique
+  id          String            @id @default(cuid())
+  slug        String            @unique
   title       String
   region      DestinationRegion
   summary     String
-  description String?             @db.Text
-  heroImageId String?             // Cloudinary public_id
-  gallery     String[]            @default([]) // Cloudinary public_ids
-  published   Boolean             @default(false)
-  featured    Boolean             @default(false)
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  description String?           @db.Text
+  heroImageId String? // Cloudinary public_id
+  gallery     String[]          @default([]) // Cloudinary public_ids
+  published   Boolean           @default(false)
+  featured    Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
   offers Offer[]
 
@@ -67,28 +67,28 @@ enum OfferKind {
 }
 
 model Offer {
-  id            String      @id @default(cuid())
-  slug          String      @unique
-  title         String
-  kind          OfferKind
-  summary       String
-  description   String?     @db.Text
-  priceFCFA     Int         // in FCFA, integer (no decimals)
-  durationDays  Int?
-  maxGuests     Int?
-  coverImageId  String?
-  gallery       String[]    @default([])
-  published     Boolean     @default(false)
-  startDate     DateTime?
-  endDate       DateTime?
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  title        String
+  kind         OfferKind
+  summary      String
+  description  String?   @db.Text
+  priceFCFA    Int // in FCFA, integer (no decimals)
+  durationDays Int?
+  maxGuests    Int?
+  coverImageId String?
+  gallery      String[]  @default([])
+  published    Boolean   @default(false)
+  startDate    DateTime?
+  endDate      DateTime?
 
   destinationId String
   destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Restrict)
 
-  reservations  Reservation[]
+  reservations Reservation[]
 
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([destinationId, published])
   @@index([kind, published])
@@ -106,38 +106,38 @@ enum ReservationStatus {
 }
 
 model Client {
-  id          String        @id @default(cuid())
-  firstName   String
-  lastName    String
-  email       String        @unique
-  phone       String
-  notes       String?       @db.Text
-  createdAt   DateTime      @default(now())
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String   @unique
+  phone     String
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
 
   reservations Reservation[]
 }
 
 model Reservation {
-  id            String            @id @default(cuid())
-  reference     String            @unique // e.g. "AT-2026-00042"
-  status        ReservationStatus @default(NOUVELLE)
+  id              String            @id @default(cuid())
+  reference       String            @unique // e.g. "AT-2026-00042"
+  status          ReservationStatus @default(NOUVELLE)
   clientAccountId String?
-  clientAccount ClientAccount?    @relation("ClientAccountReservations", fields: [clientAccountId], references: [id], onDelete: SetNull)
+  clientAccount   ClientAccount?    @relation("ClientAccountReservations", fields: [clientAccountId], references: [id], onDelete: SetNull)
 
   // Snapshot of the trip at booking time
-  travelers     Int               @default(1)
-  startDate     DateTime?
-  totalFCFA     Int
-  notes         String?           @db.Text
+  travelers Int       @default(1)
+  startDate DateTime?
+  totalFCFA Int
+  notes     String?   @db.Text
 
-  clientId      String
-  client        Client            @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Restrict)
 
-  offerId       String?
-  offer         Offer?            @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  offerId String?
+  offer   Offer?  @relation(fields: [offerId], references: [id], onDelete: SetNull)
 
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status])
   @@index([createdAt])
@@ -152,15 +152,17 @@ enum AdminRole {
 }
 
 model AdminUser {
-  id           String     @id @default(cuid())
-  email        String     @unique
-  passwordHash String
-  name         String
-  role         AdminRole  @default(AGENT)
-  twoFactorEnabled Boolean @default(false)
-  lastLoginAt  DateTime?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  passwordHash        String
+  name                String
+  role                AdminRole            @default(AGENT)
+  twoFactorEnabled    Boolean              @default(false)
+  blogPosts           BlogPost[]
+  lastLoginAt         DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  newsletterCampaigns NewsletterCampaign[]
 }
 
 // ── Visa dossiers (Phase 2 — structure in place) ───────────────────────
@@ -174,22 +176,22 @@ enum VisaStatus {
 }
 
 model VisaDossier {
-  id            String      @id @default(cuid())
-  reference     String      @unique
-  destination   String      // e.g. "Schengen", "USA", "Canada"
-  visaType      String?     // e.g. "court séjour", "long séjour", "Omra"
-  status        VisaStatus  @default(BROUILLON)
-  deadline      DateTime?
-  appointmentAt DateTime?
-  documents     Json        @default("[]") // [{name, cloudinaryId, uploadedAt}]
-  feeFCFA       Int         @default(0)
-  paid          Boolean     @default(false)
-  clientId      String      // FK to Client
+  id              String         @id @default(cuid())
+  reference       String         @unique
+  destination     String // e.g. "Schengen", "USA", "Canada"
+  visaType        String? // e.g. "court séjour", "long séjour", "Omra"
+  status          VisaStatus     @default(BROUILLON)
+  deadline        DateTime?
+  appointmentAt   DateTime?
+  documents       Json           @default("[]") // [{name, cloudinaryId, uploadedAt}]
+  feeFCFA         Int            @default(0)
+  paid            Boolean        @default(false)
+  clientId        String // FK to Client
   clientAccountId String?
-  clientAccount ClientAccount? @relation(fields: [clientAccountId], references: [id], onDelete: SetNull)
-  notes         String?     @db.Text
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  clientAccount   ClientAccount? @relation(fields: [clientAccountId], references: [id], onDelete: SetNull)
+  notes           String?        @db.Text
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
   @@index([clientId])
   @@index([status])
@@ -198,30 +200,31 @@ model VisaDossier {
 // ── Témoignages ───────────────────────────────────────────────────────
 
 model Testimonial {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   author    String
   city      String?
-  content   String   @db.Text
-  rating    Int      @default(5)
+  content   String    @db.Text
+  rating    Int       @default(5)
   tripSlug  String?
-  approved  Boolean  @default(false)
-  locale    String   @default("fr")        // "fr" | "en" — display language
-  avatarId  String?                        // Cloudinary public_id (avatar optionnel)
-  dateTrip  DateTime?                      // date du voyage (optionnel, jamais dans le futur)
-  order     Int      @default(0)           // tri manuel sur la home
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  approved  Boolean   @default(false)
+  locale    String    @default("fr") // "fr" | "en" — display language
+  avatarId  String? // Cloudinary public_id (avatar optionnel)
+  dateTrip  DateTime? // date du voyage (optionnel, jamais dans le futur)
+  order     Int       @default(0) // tri manuel sur la home
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@index([approved, locale, order])
 }
+
 // ── RBAC extensions ─────────────────────────────────────────────
 
 model TwoFactorCode {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  secret    String   // encrypted at rest in production
-  confirmed Boolean  @default(false)
-  createdAt DateTime @default(now())
+  secret    String // encrypted at rest in production
+  confirmed Boolean   @default(false)
+  createdAt DateTime  @default(now())
   lastUsed  DateTime?
 
   @@unique([userId])
@@ -231,8 +234,8 @@ model TwoFactorCode {
 model AuditLog {
   id        String   @id @default(cuid())
   userId    String?
-  action    String   // e.g. "reservation.create", "offer.publish"
-  entity    String?  // e.g. "reservation:abc123"
+  action    String // e.g. "reservation.create", "offer.publish"
+  entity    String? // e.g. "reservation:abc123"
   metadata  Json?
   ip        String?
   userAgent String?
@@ -243,18 +246,18 @@ model AuditLog {
 }
 
 model ClientAccount {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  firstName    String
-  lastName     String
-  phone        String?
-  emailVerified Boolean @default(false)
-  verifyToken  String?
-  resetToken   String?
-  resetExpires DateTime?
-  createdAt    DateTime @default(now())
-  lastLoginAt  DateTime?
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  phone         String?
+  emailVerified Boolean   @default(false)
+  verifyToken   String?
+  resetToken    String?
+  resetExpires  DateTime?
+  createdAt     DateTime  @default(now())
+  lastLoginAt   DateTime?
 
   reservations Reservation[] @relation("ClientAccountReservations")
   visaDossiers VisaDossier[]
@@ -272,8 +275,8 @@ model SiteSetting {
 
 model FaqItem {
   id        String   @id @default(cuid())
-  locale    String   // "fr" | "en"
-  category  String   // "general" | "payment" | "visa" | "flight" | "omra" | "services"
+  locale    String // "fr" | "en"
+  category  String // "general" | "payment" | "visa" | "flight" | "omra" | "services"
   question  String
   answer    String   @db.Text
   order     Int      @default(0)
@@ -283,4 +286,178 @@ model FaqItem {
 
   @@index([locale, category, order])
   @@index([isActive])
+}
+
+// ── Galerie photos (back-office + Cloudinary) ─────────────────────────
+
+model GalleryItem {
+  id           String             @id @default(cuid())
+  cloudinaryId String             @unique // public_id Cloudinary (ex: "assirik-tours/gallery/artisanat")
+  captionFr    String?            @db.VarChar(280)
+  captionEn    String?            @db.VarChar(280)
+  altText      String // requis pour a11y
+  location     String?
+  region       DestinationRegion?
+  takenAt      DateTime?
+  photographer String?
+  tags         String[]           @default([])
+  order        Int                @default(0)
+  isActive     Boolean            @default(true)
+  isFeatured   Boolean            @default(false)
+  width        Int?
+  height       Int?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([isActive, order])
+  @@index([isFeatured])
+}
+
+// ── Blog (CMS — Phase Blog) ────────────────────────────────────────────
+
+model BlogPost {
+  id           String    @id @default(cuid())
+  slug         String
+  locale       String // "fr" | "en"
+  title        String
+  excerpt      String    @db.VarChar(280)
+  body         String    @db.Text
+  coverImageId String // Cloudinary public_id (or "local:/..." fallback)
+  authorId     String
+  author       AdminUser @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  category     String? // "guides-pratiques" | "destinations" | "visa" | "omra" | "actualites"
+  tags         String[]  @default([])
+  readingTime  Int? // minutes, optional — calculated on save if absent
+  publishedAt  DateTime? // null = brouillon
+  isFeatured   Boolean   @default(false)
+  seoMeta      Json? // {title?, description?, ogImage?, keywords?}
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([slug, locale])
+  @@index([locale, publishedAt])
+  @@index([category])
+  @@index([authorId])
+}
+
+// ── Pages éditoriales (CMS blocs) ────────────────────────────────────
+
+model PageContent {
+  id        String   @id @default(cuid())
+  slug      String // "about" | "services" | "home-hero" | "home-featured" | ...
+  locale    String // "fr" | "en"
+  title     String
+  subtitle  String?
+  blocks    Json // structured blocks: [{type, props}]
+  seoMeta   Json? // {title?, description?, ogImage?, keywords?}
+  isActive  Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([slug, locale])
+  @@index([slug, isActive])
+}
+
+// ── Billetterie (recherche de vols via Kiwi Tequila) ──────────────────
+
+model FlightSearch {
+  id           String    @id @default(cuid())
+  origin       String // IATA code (DSS, DKR, CDG, etc.)
+  destination  String // IATA code
+  departDate   DateTime
+  returnDate   DateTime?
+  passengers   Int       @default(1)
+  cabinClass   String    @default("ECONOMY")
+  provider     String // "kiwi" | "amadeus" | "duffel" | "mock"
+  rawResults   Json? // last raw response (debug/audit)
+  userId       String? // optionnel si client connecté
+  userEmail    String? // pour pouvoir recontacter
+  status       String    @default("NEW") // NEW | QUOTE_REQUESTED | RESERVATION_CREATED | ARCHIVED
+  quoteName    String?
+  quotePhone   String?
+  quoteMessage String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  offers FlightOffer[]
+
+  @@index([createdAt])
+  @@index([status])
+}
+
+model FlightOffer {
+  id              String       @id @default(cuid())
+  searchId        String
+  search          FlightSearch @relation(fields: [searchId], references: [id], onDelete: Cascade)
+  provider        String
+  providerOfferId String
+  priceAmount     Decimal      @db.Decimal(12, 2)
+  priceCurrency   String
+  outbound        Json
+  inbound         Json?
+  passengers      Int
+  cabinClass      String
+  expiresAt       DateTime
+  bookingUrl      String?
+  createdAt       DateTime     @default(now())
+
+  @@index([searchId])
+}
+
+// ── Communications sortantes (email + SMS + WhatsApp) ─────────────────
+
+model Notification {
+  id                String    @id @default(cuid())
+  channel           String // "email" | "sms" | "whatsapp"
+  templateId        String // "reservation.confirmed" | "payment.received" | ...
+  toAddress         String? // email ou téléphone
+  toName            String?
+  subject           String?
+  body              String    @db.Text
+  locale            String    @default("fr")
+  status            String    @default("queued") // queued | sent | failed | skipped
+  provider          String? // "resend" | "twilio" | "whatsapp_cloud" | "noop"
+  providerMessageId String?
+  errorMessage      String?   @db.Text
+  metadata          Json?
+  scheduledAt       DateTime?
+  sentAt            DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  campaignId String?
+  campaign   NewsletterCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([channel])
+  @@index([templateId])
+  @@index([scheduledAt])
+  @@index([createdAt])
+}
+
+model NewsletterCampaign {
+  id           String    @id @default(cuid())
+  subjectFr    String
+  subjectEn    String
+  bodyFr       String    @db.Text
+  bodyEn       String    @db.Text
+  audience     String // "all" | "vip" | "tag" | "manual"
+  audienceTag  String?
+  audienceList Json? // when audience="manual": string[] of emails
+  status       String    @default("draft") // draft | scheduled | sending | sent | cancelled
+  scheduledAt  DateTime?
+  sentAt       DateTime?
+  recipients   Int       @default(0)
+  sent         Int       @default(0)
+  failed       Int       @default(0)
+  authorId     String
+  author       AdminUser @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  notifications Notification[]
+
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([authorId])
 }

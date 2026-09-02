@@ -31,20 +31,24 @@ export async function getReportData(filters: ReportFilters) {
       : {}),
     ...(filters.destinationId ? { destinationId: filters.destinationId } : {}),
     ...(filters.agentId ? { assigneeId: filters.agentId } : {}),
-    ...(filters.status ? { status: filters.status } : {}),
+    ...(filters.status ? { status: filters.status as import("@prisma/client").ReservationStatus } : {}),
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const reservationList = await prisma.reservation.findMany({
+    where,
+    orderBy: { createdAt: "desc" },
+    include: {
+      client: true,
+      offer: { include: { destination: true } },
+      destination: true,
+      assignee: { select: { id: true, name: true } },
+    },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }) as any[];
+
   const [reservations, destinations, agents] = await Promise.all([
-    prisma.reservation.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      include: {
-        client: true,
-        offer: { include: { destination: true } },
-        destination: true,
-        assignee: { select: { id: true, name: true } },
-      },
-    }),
+    Promise.resolve(reservationList),
     prisma.destination.findMany({
       where: { published: true },
       select: { id: true, title: true },

@@ -20,13 +20,13 @@ export function UserFormDialog({
 }) {
   const isEdit = !!user?.id;
   const [pending, start] = useTransition();
-  const [state, setState] = useState<UserFormState | null>(null);
+  const [state, setState] = useState<UserFormState>({});
 
   function handleSubmit(fd: FormData) {
     start(async () => {
       const result = isEdit
-        ? await updateUserAction(null, fd)
-        : await createUserAction(null, fd);
+        ? await updateUserAction(state, fd)
+        : await createUserAction(state, fd);
       setState(result);
       if (result.success) {
         setTimeout(() => onClose(), 1200);

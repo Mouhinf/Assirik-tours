@@ -19,7 +19,11 @@ export default async function AdminAuditPage() {
     prisma.auditLog.findMany({
       orderBy: { createdAt: "desc" },
       take: 500,
-    }),
+    }) as unknown as Array<{
+      id: string; userId: string | null; action: string; entity: string | null;
+      metadata: Record<string, unknown> | null; ip: string | null;
+      userAgent: string | null; createdAt: Date;
+    }>,
     prisma.adminUser.findMany({
       select: { id: true, name: true, email: true },
       orderBy: { name: "asc" },

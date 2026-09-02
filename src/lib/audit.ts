@@ -38,6 +38,7 @@ export type AuditAction =
   | "service.delete"
   | "user.create"
   | "user.update"
+  | "user.delete"
   | "testimonial.create"
   | "testimonial.update"
   | "testimonial.delete"

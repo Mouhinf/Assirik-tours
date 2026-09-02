@@ -603,6 +603,98 @@ function BlockEditor({ block, onChange }: { block: Block; onChange: (props: unkn
         </div>
       );
     }
+    case "credentials-grid": {
+      const p = block.props;
+      return (
+        <div className="space-y-3">
+          {p.items.map((it, i) => (
+            <div
+              key={i}
+              className="rounded-lg border border-sand-deep/60 bg-sand p-3 space-y-2"
+            >
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  value={it.name}
+                  onChange={(e) => {
+                    const next = [...p.items];
+                    next[i] = { ...next[i], name: e.target.value };
+                    onChange({ ...p, items: next });
+                  }}
+                  placeholder="Nom (ex : IATA)"
+                  className={inputCls}
+                />
+                <input
+                  type="text"
+                  value={it.issuer ?? ""}
+                  onChange={(e) => {
+                    const next = [...p.items];
+                    next[i] = { ...next[i], issuer: e.target.value };
+                    onChange({ ...p, items: next });
+                  }}
+                  placeholder="Émetteur (ex : Ministère du Tourisme)"
+                  className={inputCls}
+                />
+              </div>
+              <input
+                type="text"
+                value={it.badgeId ?? ""}
+                onChange={(e) => {
+                  const next = [...p.items];
+                  next[i] = { ...next[i], badgeId: e.target.value };
+                  onChange({ ...p, items: next });
+                }}
+                placeholder="Badge public_id Cloudinary (optionnel)"
+                className={inputCls + " font-mono text-xs"}
+              />
+              <textarea
+                rows={2}
+                value={it.description ?? ""}
+                onChange={(e) => {
+                  const next = [...p.items];
+                  next[i] = { ...next[i], description: e.target.value };
+                  onChange({ ...p, items: next });
+                }}
+                placeholder="Description courte (optionnel)"
+                className={inputCls + " text-sm"}
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  onChange({
+                    ...p,
+                    items: p.items.filter((_, j) => j !== i),
+                  })
+                }
+                className="rounded-md bg-sunrise-coral/15 px-2 py-1 text-xs text-sunrise-coral"
+              >
+                Retirer cet agrément
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              onChange({
+                ...p,
+                items: [
+                  ...p.items,
+                  { name: "Nouvel agrément", issuer: "Émetteur" },
+                ],
+              })
+            }
+            className="text-xs font-semibold text-ocean hover:text-navy"
+          >
+            + Ajouter un agrément
+          </button>
+          <p className="text-[0.7rem] text-silver">
+            Pour le badge : uploadez l&apos;image dans la médiathèque, puis collez
+            le <code className="font-mono">public_id</code> ici. Laissez vide
+            pour afficher uniquement le nom et l&apos;émetteur.
+          </p>
+        </div>
+      );
+    }
     case "service-list": {
       const p = block.props;
       return (

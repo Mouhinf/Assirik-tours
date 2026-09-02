@@ -3,6 +3,8 @@ import { PageBlockRenderer } from "@/components/site/page-block-renderer";
 import { getPageContent } from "@/lib/page-content-actions";
 import { PageHero } from "@/components/site/page-hero";
 import { breadcrumbJsonLd } from "@/lib/seo/jsonld";
+import { ServiceGrid } from "@/components/site/service-grid";
+import { listActiveServices } from "@/lib/service-actions";
 
 export async function generateMetadata(): Promise<Metadata> {
   const db = await getPageContent("services", "fr");
@@ -25,37 +27,42 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ServicesPage() {
-  const db = await getPageContent("services", "fr");
-
-  if (!db) {
-    return (
-      <>
-        <PageHero
-          eyebrow="Services"
-          title="Tout ce qu'il faut autour du billet"
-          description="Voyager, c'est aussi régler les formalités et le confort sur place. Voici les services que nous coordonnons pour vous."
-        />
-        <section className="container-narrow pb-20">
-          <p className="rounded-xl border border-sand-deep bg-sand p-8 text-center text-graphite">
-            Le détail des services sera bientôt disponible.
-          </p>
-        </section>
-      </>
-    );
-  }
+  const [db, services] = await Promise.all([
+    getPageContent("services", "fr"),
+    listActiveServices(),
+  ]);
 
   return (
     <>
-      {db.blocks.map((block, i) => (
-        <PageBlockRenderer key={i} block={block} />
-      ))}
+      {db ? (
+        db.blocks.map((block, i) => (
+          <PageBlockRenderer key={i} block={block} />
+        ))
+      ) : (
+        <>
+          <PageHero
+            eyebrow="Services"
+            title="Tout ce qu'il faut autour du billet"
+            description="Voyager, c'est aussi régler les formalités et le confort sur place. Voici les services que nous coordonnons pour vous."
+          />
+          <section className="container-narrow pb-10">
+            <p className="rounded-xl border border-sand-deep bg-sand p-6 text-center text-sm text-graphite">
+              Le détail de nos prestations est en cours d&apos;enrichissement — vous
+              pouvez déjà consulter les services ci-dessous.
+            </p>
+          </section>
+        </>
+      )}
+
+      <ServiceGrid services={services} />
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(
             breadcrumbJsonLd([
               { name: "Accueil", url: "/" },
-              { name: db.title || "Services", url: "/services" },
+              { name: db?.title || "Services", url: "/services" },
             ]),
           ),
         }}

@@ -4,12 +4,13 @@ import { DestinationCard } from "@/components/site/destination-card";
 import { OfferCard } from "@/components/site/offer-card";
 import { TestimonialCard } from "@/components/site/testimonial-card";
 import { prisma } from "@/lib/prisma";
-import { resolveImage, FALLBACK_BY_SLUG } from "@/lib/photos";
+import { getHomeHero, heroImageUrl } from "@/lib/homepage-hero";
+import { getActiveRegions } from "@/lib/regions";
+import { resolveImage } from "@/lib/photos";
 import { whatsappLink } from "@/lib/whatsapp";
-import { cn } from "@/lib/utils";
 import { getLocaleCookie } from "@/lib/i18n-actions";
 import { isLocale, DEFAULT_LOCALE } from "@/lib/i18n";
-import { buildReviewsJsonLd } from "@/lib/seo/jsonld";
+import { buildReviewsJsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/seo/jsonld";
 
 const trustPoints = [
   {
@@ -30,24 +31,42 @@ export default async function HomePage() {
   const cookieLocale = await getLocaleCookie();
   const displayLocale = isLocale(cookieLocale) ? cookieLocale : DEFAULT_LOCALE;
 
-  const [featuredDestinations, latestOffers, testimonials] = await Promise.all([
-    prisma.destination.findMany({
-      where: { published: true, featured: true },
-      orderBy: { createdAt: "asc" },
-      take: 6,
-    }),
-    prisma.offer.findMany({
-      where: { published: true },
-      include: { destination: true },
-      orderBy: { createdAt: "desc" },
-      take: 3,
-    }),
-    prisma.testimonial.findMany({
-      where: { approved: true, locale: displayLocale },
-      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
-      take: 3,
-    }),
-  ]);
+  // Destinations: prefer those with homeOrder set, fall back to featured ones.
+  const [homeOrderDests, featuredDests, homeOrderOffers, latestOffers, testimonials] =
+    await Promise.all([
+      prisma.destination.findMany({
+        where: { published: true, homeOrder: { not: null } },
+        orderBy: { homeOrder: "asc" },
+        take: 6,
+      }),
+      prisma.destination.findMany({
+        where: { published: true, featured: true },
+        orderBy: { createdAt: "asc" },
+        take: 6,
+      }),
+      prisma.offer.findMany({
+        where: { published: true, featuredOnHome: true, homeOrder: { not: null } },
+        orderBy: { homeOrder: "asc" },
+        take: 3,
+        include: { destination: true },
+      }),
+      prisma.offer.findMany({
+        where: { published: true },
+        include: { destination: true },
+        orderBy: { createdAt: "desc" },
+        take: 3,
+      }),
+      prisma.testimonial.findMany({
+        where: { approved: true, locale: displayLocale },
+        orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+        take: 3,
+      }),
+    ]);
+
+  const featuredDestinations =
+    homeOrderDests.length > 0 ? homeOrderDests : featuredDests;
+  const displayOffers =
+    homeOrderOffers.length > 0 ? homeOrderOffers : latestOffers;
 
   // JSON-LD: also pull a slightly wider set (still capped to 10) for SEO.
   const reviewsForSeo = await prisma.testimonial.findMany({
@@ -65,7 +84,8 @@ export default async function HomePage() {
     })),
   );
 
-  const heroImage = resolveImage(null, FALLBACK_BY_SLUG["lac-rose"] ?? "/photos/destinations/lac-rose.jpg", {
+  const hero = await getHomeHero(displayLocale);
+  const heroImage = heroImageUrl(hero.heroImageId) ?? resolveImage(null, "/photos/destinations/lac-rose.jpg", {
     width: 1920, height: 1080, crop: "fill",
   });
 
@@ -77,6 +97,14 @@ export default async function HomePage() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewsLd) }}
         />
       ) : null}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
 
       {/* Hero */}
       <section className="relative overflow-hidden">
@@ -99,28 +127,27 @@ export default async function HomePage() {
         <div className="container-narrow pt-20 pb-28 md:pt-28 md:pb-32">
           <p className="inline-flex items-center gap-2 rounded-full bg-sand/90 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-navy backdrop-blur">
             <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-sunrise-orange" />
-            Dakar · Sénégal · depuis 2009
+            {hero.eyebrow}
           </p>
           <h1 className="mt-5 max-w-4xl font-display text-4xl md:text-6xl font-semibold leading-[1.05] text-balance">
-            <span className="text-navy">Vols, visas, séjours.</span>
+<span className="text-navy">{hero.title}</span>
             <br />
-            <span className="text-ocean">Un interlocuteur unique à Dakar.</span>
+            <span className="text-ocean">{hero.titleAccent}</span>
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-anthracite leading-relaxed">
-            Nous organisons vos voyages depuis le Sénégal — Sénégal, Omra, Maroc, Turquie, Dubaï, Europe.
-            Billets, formalités visa et séjours coordonnés par une équipe qui connaît le terrain.
+            {hero.description}
           </p>
 
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <Link
-              href="/destinations"
+              href={hero.primaryCtaHref || "/destinations"}
               className="inline-flex items-center gap-2 rounded-full bg-navy px-6 py-3 text-sm font-semibold text-sand hover:bg-ocean transition-colors"
             >
-              Explorer les destinations
+              {hero.primaryCtaLabel}
               <span aria-hidden>→</span>
             </Link>
             <a
-              href={whatsappLink("Bonjour Assirik Tours, j'aimerais des informations sur un voyage.")}
+              href={whatsappLink(hero.whatsappMessage)}
               target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-full bg-whatsapp px-6 py-3 text-sm font-semibold text-sand hover:bg-whatsapp-hover transition-colors"
             >
@@ -186,7 +213,7 @@ export default async function HomePage() {
       </section>
 
       {/* Offers */}
-      {latestOffers.length > 0 ? (
+      {displayOffers.length > 0 ? (
         <section className="container-narrow pb-16">
           <header className="flex items-end justify-between gap-4 mb-6">
             <div>
@@ -202,7 +229,7 @@ export default async function HomePage() {
             </Link>
           </header>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {latestOffers.map((o) => (
+            {displayOffers.map((o) => (
               <OfferCard
                 key={o.id}
                 slug={o.slug}
@@ -294,12 +321,17 @@ export default async function HomePage() {
 
 /* ---------- local sub-components ---------- */
 
-function QuickSearch() {
-  // Pre-fills the real search page with the destination keyword entered
-  // by the visitor — no client-side state needed beyond a GET form.
+async function QuickSearch() {
+  // Posts to /destinations with prefilled filters (region, dates, keyword).
+  // No client-side state needed — pure GET form.
+  const regions = await getActiveRegions();
   return (
-    <form action="/recherche" className="rounded-xl bg-sand/95 border border-sand-deep shadow-soft backdrop-blur p-3 max-w-2xl">
-      <div className="grid md:grid-cols-[1.4fr_1fr_auto] gap-2">
+    <form
+      action="/destinations"
+      method="get"
+      className="rounded-xl bg-sand/95 border border-sand-deep shadow-soft backdrop-blur p-3 max-w-3xl"
+    >
+      <div className="grid md:grid-cols-[1.4fr_1fr_1fr_auto] gap-2">
         <label className="flex flex-col rounded-lg bg-sand-deep/40 px-3 py-2 hover:bg-sand-deep transition-colors">
           <span className="text-[0.75rem] font-semibold uppercase tracking-wider text-graphite">
             Destination
@@ -314,14 +346,24 @@ function QuickSearch() {
           <span className="text-[0.75rem] font-semibold uppercase tracking-wider text-graphite">
             Région
           </span>
-          <select name="region" className="mt-0.5 bg-transparent text-sm text-navy outline-none">
+          <select name="region" defaultValue="" className="mt-0.5 bg-transparent text-sm text-navy outline-none">
             <option value="">Toutes</option>
-            <option value="DAKAR">Dakar</option>
-            <option value="PETITE_COTE">Petite-Côte</option>
-            <option value="CASAMANCE">Casamance</option>
-            <option value="MOYEN_ORIENT">Moyen-Orient (Omra)</option>
-            <option value="EUROPE">Europe</option>
+            {regions.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.labelFr}
+              </option>
+            ))}
           </select>
+        </label>
+        <label className="flex flex-col rounded-lg bg-sand-deep/40 px-3 py-2 hover:bg-sand-deep transition-colors">
+          <span className="text-[0.75rem] font-semibold uppercase tracking-wider text-graphite">
+            Date de départ
+          </span>
+          <input
+            type="date"
+            name="startDate"
+            className="mt-0.5 bg-transparent text-sm text-navy placeholder:text-silver outline-none"
+          />
         </label>
         <button
           type="submit"

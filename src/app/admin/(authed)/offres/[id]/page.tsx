@@ -21,7 +21,7 @@ export default async function EditOfferPage({
     <div className="space-y-6">
       <header>
         <h1 className="font-display text-3xl font-semibold text-navy">
-          Éditer l'offre
+          Éditer l&apos;offre
         </h1>
         <p className="mt-1 text-graphite">{offer.title}</p>
       </header>
@@ -40,7 +40,15 @@ export default async function EditOfferPage({
           maxGuests: offer.maxGuests,
           destinationId: offer.destinationId,
           coverImageId: offer.coverImageId ?? "",
+          inclusions: offer.inclusions,
+          exclusions: offer.exclusions,
+          promoPriceFCFA: offer.promoPriceFCFA,
+          promoEndsAt: offer.promoEndsAt ? offer.promoEndsAt.toISOString().slice(0, 10) : null,
+          availabilityType: offer.availabilityType,
+          stock: offer.stock,
           published: offer.published,
+          featuredOnHome: offer.featuredOnHome,
+          homeOrder: offer.homeOrder,
         }}
       />
     </div>

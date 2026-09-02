@@ -27,6 +27,7 @@ import {
 } from "@/lib/communications/templates";
 import type { Channel, Locale, Message, SendResult } from "@/lib/communications/types";
 import { siteConfig } from "@/lib/site-config";
+import type { ReservationSource } from "@prisma/client";
 
 /* ── Core dispatcher ─────────────────────────────────────────── */
 
@@ -147,6 +148,227 @@ export async function notifyAgency(input: Omit<DispatchInput, "to" | "channel">)
     toName: siteConfig.name,
     locale: input.locale ?? "fr",
   });
+}
+
+const REQUEST_SOURCE_LABELS: Record<ReservationSource, string> = {
+  CONTACT: "Contact",
+  DESTINATION: "Destination",
+  OFFER: "Offre",
+  FLIGHT: "Billetterie",
+};
+
+export type NewRequestNotificationInput = {
+  reservationId: string;
+  reference: string;
+  source: ReservationSource;
+  clientName: string;
+  clientEmail?: string | null;
+  clientPhone?: string | null;
+  subject?: string | null;
+  details?: string | null;
+};
+
+/**
+ * Sends the same durable team alert for every public request source. The call
+ * sites await this helper so Vercel does not freeze the invocation before the
+ * Notification row and email provider result have been persisted.
+ *
+ * Alert failures never roll back an already captured lead; they are logged and
+ * returned as a failed result so the public form can still confirm receipt.
+ */
+export async function notifyNewRequest(
+  input: NewRequestNotificationInput,
+): Promise<SendResult> {
+  const sourceLabel = REQUEST_SOURCE_LABELS[input.source];
+  const vars = {
+    reference: input.reference,
+    source: sourceLabel,
+    clientName: input.clientName,
+    clientEmail: input.clientEmail || "—",
+    clientPhone: input.clientPhone || "—",
+    requestSubject: input.subject || "Demande sans objet",
+    details: input.details?.slice(0, 8000) || "—",
+    adminUrl: `${siteConfig.url}/admin/reservations?source=${input.source}`,
+  };
+  const metadata = {
+    reservationId: input.reservationId,
+    reference: input.reference,
+    source: input.source,
+  };
+
+  try {
+    // Email is preferred. The internal webhook is used when Resend is absent,
+    // and also as failover when a configured email provider returns an error.
+    const emailConfigured = getProvider("email").configured;
+    const webhookConfigured = Boolean(process.env.INTERNAL_NOTIFICATION_WEBHOOK_URL);
+    if (emailConfigured) {
+      const emailResult = await notifyAgency({
+        templateId: "reservation.new_request",
+        vars,
+        metadata,
+      });
+      if (emailResult.ok || !webhookConfigured) return emailResult;
+    }
+
+    if (webhookConfigured) {
+      return await dispatchInternalWebhook({
+        templateId: "reservation.new_request",
+        vars,
+        metadata,
+      });
+    }
+
+    // Persist a failed/noop email attempt when neither channel is configured;
+    // it remains visible in the Communications history for operators.
+    return await notifyAgency({
+      templateId: "reservation.new_request",
+      vars,
+      metadata,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Erreur de notification inconnue";
+    console.error("[notifyNewRequest] team alert failed", {
+      reservationId: input.reservationId,
+      source: input.source,
+      error: message,
+    });
+    return {
+      ok: false,
+      provider: "internal",
+      error: message,
+      sentAt: new Date(),
+    };
+  }
+}
+
+async function dispatchInternalWebhook(input: {
+  templateId: string;
+  vars: Record<string, string | number | undefined | null>;
+  metadata: Record<string, unknown>;
+}): Promise<SendResult> {
+  const endpoint = process.env.INTERNAL_NOTIFICATION_WEBHOOK_URL;
+  if (!endpoint) {
+    return {
+      ok: false,
+      provider: "internal_webhook",
+      error: "INTERNAL_NOTIFICATION_WEBHOOK_URL not configured",
+      sentAt: new Date(),
+    };
+  }
+
+  const template = getTemplate(input.templateId);
+  if (!template) {
+    return {
+      ok: false,
+      provider: "internal_webhook",
+      error: `Template inconnu: ${input.templateId}`,
+      sentAt: new Date(),
+    };
+  }
+
+  let webhookUrl: URL;
+  try {
+    webhookUrl = new URL(endpoint);
+    if (!["https:", "http:"].includes(webhookUrl.protocol)) {
+      throw new Error("unsupported protocol");
+    }
+  } catch {
+    return {
+      ok: false,
+      provider: "internal_webhook",
+      error: "INTERNAL_NOTIFICATION_WEBHOOK_URL invalide",
+      sentAt: new Date(),
+    };
+  }
+
+  const subject = renderTemplateSubject(template, "fr", input.vars);
+  const body = renderTemplateBody(template, "fr", input.vars);
+  const notification = await prisma.notification.create({
+    data: {
+      channel: "webhook",
+      templateId: template.id,
+      // Never persist URL query parameters that may contain a webhook token.
+      toAddress: webhookUrl.origin,
+      toName: siteConfig.name,
+      subject: subject ?? null,
+      body,
+      locale: "fr",
+      status: "queued",
+      metadata: input.metadata as never,
+    },
+  });
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "X-Assirik-Event": input.templateId,
+  };
+  if (process.env.INTERNAL_NOTIFICATION_WEBHOOK_SECRET) {
+    headers.Authorization = `Bearer ${process.env.INTERNAL_NOTIFICATION_WEBHOOK_SECRET}`;
+  }
+
+  let result: SendResult;
+  try {
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        event: input.templateId,
+        subject,
+        text: body,
+        data: input.metadata,
+        occurredAt: new Date().toISOString(),
+      }),
+      cache: "no-store",
+    });
+    result = response.ok
+      ? {
+          ok: true,
+          provider: "internal_webhook",
+          providerMessageId: response.headers.get("x-request-id") ?? undefined,
+          sentAt: new Date(),
+        }
+      : {
+          ok: false,
+          provider: "internal_webhook",
+          error: `Webhook ${response.status}: ${(await response.text()).slice(0, 200)}`,
+          sentAt: new Date(),
+        };
+  } catch (error) {
+    result = {
+      ok: false,
+      provider: "internal_webhook",
+      error: error instanceof Error ? error.message : "Network error",
+      sentAt: new Date(),
+    };
+  }
+
+  await prisma.notification.update({
+    where: { id: notification.id },
+    data: {
+      status: result.ok ? "sent" : "failed",
+      provider: result.provider,
+      providerMessageId: result.providerMessageId ?? null,
+      errorMessage: result.error ?? null,
+      sentAt: result.ok ? result.sentAt : null,
+    },
+  });
+
+  try {
+    await recordAudit({
+      action: result.ok ? "communication.sent" : "communication.failed",
+      entity: `notification:${notification.id}`,
+      metadata: {
+        templateId: template.id,
+        channel: "webhook",
+        provider: result.provider,
+        error: result.error,
+      },
+    });
+  } catch (error) {
+    console.error("[dispatchInternalWebhook] audit failed", error);
+  }
+
+  return result;
 }
 
 /* ── Admin — test send ────────────────────────────────────────── */

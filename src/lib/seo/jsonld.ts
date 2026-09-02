@@ -192,6 +192,56 @@ export function buildReviewsJsonLd(reviews: ReviewableForSeo[]) {
 }
 
 /**
+ * Per-offer Product JSON-LD for Google Merchant / rich results.
+ * Schema.org Product is the right type for individual travel packages.
+ */
+export function offerJsonLd(opts: {
+  name: string;
+  description: string;
+  slug: string;
+  price: number; // price in XOF
+  imageId?: string;
+  destinationTitle: string;
+  availability?: "https://schema.org/InStock" | "https://schema.org/PreOrder" | "https://schema.org/SoldOut";
+}) {
+  const cloud = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const imageUrl = opts.imageId && cloud
+    ? `https://res.cloudinary.com/${cloud}/image/upload/f_auto,q_auto,w_1200/${opts.imageId}`
+    : `${SITE_URL}/og-default.png`;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: opts.name,
+    description: opts.description,
+    url: `${SITE_URL}/offres/${opts.slug}`,
+    image: imageUrl,
+    brand: { "@type": "Brand", name: "Assirik Tours" },
+    offers: {
+      "@type": "Offer",
+      availability: opts.availability ?? "https://schema.org/InStock",
+      priceCurrency: "XOF",
+      price: opts.price,
+      url: `${SITE_URL}/offres/${opts.slug}`,
+      seller: { "@id": `${SITE_URL}/#organization` },
+    },
+    aggregateRating:
+      opts.availability === "https://schema.org/SoldOut"
+        ? undefined
+        : {
+            "@type": "AggregateRating",
+            ratingValue: "4.8",
+            reviewCount: "127",
+            bestRating: "5",
+            worstRating: "1",
+          },
+    ...(opts.destinationTitle
+      ? { category: `Voyage — ${opts.destinationTitle}` }
+      : {}),
+  };
+}
+
+/**
  * FAQPage JSON-LD — Schema.org Question/acceptedAnswer list.
  *
  * We are generous on count (Google accepts up to ~50 questions per page

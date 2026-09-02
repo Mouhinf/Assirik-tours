@@ -10,6 +10,23 @@ export default async function EditTestimonialPage({
   const { id } = await params;
   const t = await prisma.testimonial.findUnique({ where: { id } });
   if (!t) notFound();
+  const [destRows, offerRows] = await Promise.all([
+    prisma.destination.findMany({
+      where: { published: true },
+      select: { slug: true, title: true },
+      orderBy: { homeOrder: "asc" },
+    }),
+    prisma.offer.findMany({
+      where: { published: true },
+      select: { slug: true, title: true },
+      orderBy: [{ createdAt: "desc" }],
+    }),
+  ]);
+  const tripOptions = [
+    ...destRows.map((d) => ({ slug: d.slug, title: d.title, kind: "destination" as const })),
+    ...offerRows.map((o) => ({ slug: o.slug, title: o.title, kind: "offer" as const })),
+  ];
+
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -25,6 +42,7 @@ export default async function EditTestimonialPage({
 
       <TestimonialForm
         mode="edit"
+        tripOptions={tripOptions}
         initial={{
           id: t.id,
           author: t.author,

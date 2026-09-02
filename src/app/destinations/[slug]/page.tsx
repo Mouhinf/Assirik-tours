@@ -43,6 +43,7 @@ export default async function DestinationDetailPage({ params }: { params: Params
         where: { published: true },
         orderBy: { createdAt: "asc" },
       },
+      customRegion: { select: { labelFr: true, labelEn: true } },
     },
   });
   if (!dest) notFound();
@@ -66,7 +67,7 @@ export default async function DestinationDetailPage({ params }: { params: Params
     }))
     .filter(Boolean);
 
-  const regionLabel = REGION_LABELS_FR[dest.region] ?? dest.region;
+  const regionLabel = dest.customRegion?.labelFr ?? REGION_LABELS_FR[dest.region] ?? dest.region;
 
   return (
     <>
@@ -156,7 +157,7 @@ export default async function DestinationDetailPage({ params }: { params: Params
                 Discuter sur WhatsApp
               </a>
               <Link
-                href={`/contact?destination=${encodeURIComponent(dest.title)}`}
+                href={`/contact?destination=${encodeURIComponent(dest.slug)}`}
                 className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-ocean hover:text-navy"
               >
                 Ou demander un devis écrit →
@@ -227,6 +228,22 @@ export default async function DestinationDetailPage({ params }: { params: Params
           </p>
         </section>
       )}
+
+      {/* Vous-y-êtes-allé ? — invitation à laisser un avis */}
+      <section className="container-narrow pb-20">
+        <div className="rounded-xl border border-ocean/20 bg-ocean/5 p-6 flex flex-wrap items-center justify-between gap-4">
+          <p className="text-sm text-graphite">
+            <span className="font-semibold text-navy">Vous avez visité {dest.title} ?</span>{" "}
+            Votre avis aide d&apos;autres voyageurs à se décider.
+          </p>
+          <Link
+            href={`/temoignages/nouveau?tripSlug=${encodeURIComponent(dest.slug)}&tripKind=destination`}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-ocean px-5 py-2.5 text-sm font-semibold text-sand transition-colors hover:bg-navy whitespace-nowrap"
+          >
+            Laisser un avis sur cette destination <span aria-hidden>→</span>
+          </Link>
+        </div>
+      </section>
 
       {/* JSON-LD */}
       <script

@@ -73,6 +73,7 @@ export function NotificationHistory({ notifications }: { notifications: Notifica
 function ChannelBadge({ channel }: { channel: string }) {
   const colors: Record<string, string> = {
     email: "bg-sky/15 text-ocean",
+    webhook: "bg-violet-100 text-violet-800",
     sms: "bg-sunrise-orange/20 text-sunrise-amber",
     whatsapp: "bg-emerald-100 text-emerald-800",
   };

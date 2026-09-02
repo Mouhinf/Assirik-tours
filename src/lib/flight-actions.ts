@@ -8,9 +8,10 @@ import { getFlightProvider, isUsingMockProvider } from "@/lib/flight-providers";
 import type {
   CabinClass,
   FlightSearchInput,
-  FlightOfferResult,
 } from "@/lib/flight-providers/types";
-import { notifyAgency } from "@/lib/communications-actions";
+import { ReservationSource } from "@prisma/client";
+import { notifyNewRequest } from "@/lib/communications-actions";
+import { createReservationReference } from "@/lib/reservation-reference";
 
 /* ── Helpers ────────────────────────────────────────────────────── */
 
@@ -169,7 +170,7 @@ export async function requestFlightQuoteAction(formData: FormData) {
   const searchId = String(formData.get("searchId") ?? "");
   const offerId = String(formData.get("offerId") ?? "");
   const name = String(formData.get("name") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const phone = String(formData.get("phone") ?? "").trim();
   const message = String(formData.get("message") ?? "").trim();
 
@@ -181,18 +182,69 @@ export async function requestFlightQuoteAction(formData: FormData) {
   const search = await prisma.flightSearch.findUnique({ where: { id: searchId } });
   if (!search) return { error: "Recherche introuvable." };
 
-  await prisma.flightSearch.update({
-    where: { id: searchId },
-    data: {
-      status: "QUOTE_REQUESTED",
-      quoteName: name,
-      quotePhone: phone,
-      quoteMessage: message,
-      userEmail: email,
-    },
+  const offer = await prisma.flightOffer.findFirst({
+    where: { searchId, providerOfferId: offerId },
+  });
+  if (!offer) return { error: "L'offre de vol sélectionnée est introuvable." };
+
+  const firstName = name.split(" ")[0] || name;
+  const lastName = name.split(" ").slice(1).join(" ") || "—";
+
+  // Build a short, readable summary of the search into the reservation notes —
+  // agents see this in /admin/reservations without needing to open the search.
+  const cabinLabel = String(search.cabinClass).replace("_", " ");
+  const summary =
+    `Devis vol via Billetterie\n` +
+    `Trajet : ${search.origin} → ${search.destination}\n` +
+    `Départ : ${search.departDate.toISOString().slice(0, 10)}\n` +
+    (search.returnDate ? `Retour : ${search.returnDate.toISOString().slice(0, 10)}\n` : "") +
+    `Passagers : ${search.passengers}\n` +
+    `Classe : ${cabinLabel}\n` +
+    (offer.priceAmount
+      ? `Offre affichée : ${offer.priceAmount} ${offer.priceCurrency} (provider ${offer.provider})\n`
+      : `Provider : ${search.provider}\n`) +
+    (message ? `\nMessage client :\n${message}` : "");
+
+  // Keep the search state, client and unified request in one transaction so a
+  // successful submission cannot exist only in the Billetterie module.
+  const reference = createReservationReference();
+  const reservation = await prisma.$transaction(async (tx) => {
+    const client = await tx.client.upsert({
+      where: { email },
+      create: { firstName, lastName, email, phone, notes: message },
+      update: { firstName, lastName, phone },
+    });
+
+    await tx.flightSearch.update({
+      where: { id: searchId },
+      data: {
+        status: "QUOTE_REQUESTED",
+        quoteName: name,
+        quotePhone: phone,
+        quoteMessage: message,
+        userEmail: email,
+      },
+    });
+
+    return tx.reservation.create({
+      data: {
+        reference,
+        status: "NOUVELLE",
+        processingStatus: "NOUVEAU",
+        source: ReservationSource.FLIGHT,
+        subject: `Devis vol ${search.origin} → ${search.destination}`,
+        clientId: client.id,
+        travelers: search.passengers,
+        startDate: search.departDate,
+        totalFCFA: 0,
+        notes: summary,
+        tags: ["Billetterie", `flight:${searchId}`],
+      },
+      select: { id: true, reference: true },
+    });
   });
 
-  // Audit
+  // 3. Audit (preserve existing shape + add reservationId)
   await recordAudit({
     action: "flight.quote.request",
     entity: `flight:${searchId}`,
@@ -204,31 +256,24 @@ export async function requestFlightQuoteAction(formData: FormData) {
       name,
       email,
       phone,
+      reservationId: reservation.id,
+      reservationReference: reservation.reference,
     },
   });
 
-  // Notify the agency by email.
-  const offer = await prisma.flightOffer.findFirst({
-    where: { searchId, providerOfferId: offerId },
-  });
-  void notifyAgency({
-    templateId: "flight.quote_requested",
-    vars: {
-      clientName: name,
-      clientEmail: email,
-      clientPhone: phone,
-      origin: search.origin,
-      destination: search.destination,
-      departDate: search.departDate.toISOString().slice(0, 10),
-      returnDate: search.returnDate?.toISOString().slice(0, 10) ?? "",
-      passengers: search.passengers,
-      offerPrice: offer?.priceAmount ? String(offer.priceAmount) : "—",
-      offerCurrency: offer?.priceCurrency ?? "XOF",
-    },
-    metadata: { searchId, offerId },
+  // 4. Persist and send the same team alert as every other source.
+  await notifyNewRequest({
+    reservationId: reservation.id,
+    reference: reservation.reference,
+    source: ReservationSource.FLIGHT,
+    clientName: name,
+    clientEmail: email,
+    clientPhone: phone,
+    subject: `Devis vol ${search.origin} → ${search.destination}`,
+    details: summary,
   });
 
-  return { success: true };
+  return { success: true, reference: reservation.reference };
 }
 
 /* ── Admin helpers ─────────────────────────────────────────── */

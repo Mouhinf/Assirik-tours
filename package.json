@@ -14,7 +14,17 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "admin:create": "tsx scripts/create-admin.ts",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "seed:services": "tsx scripts/seed-services.ts",
+    "seed:testimonials": "tsx scripts/seed-testimonials.ts",
+    "seed:blog": "tsx scripts/seed-blog.ts",
+    "seed:regions": "tsx scripts/seed-regions.ts",
+    "seed:all": "tsx scripts/seed.ts && tsx scripts/seed-regions.ts && tsx scripts/seed-services.ts && tsx scripts/seed-about-page.ts",
+    "seed:about": "tsx scripts/seed-about-page.ts",
+    "migrate:about-year": "tsx scripts/migrate-about-year.ts",
+    "migrate:about-credentials": "tsx scripts/migrate-about-credentials.ts",
+    "migrate:reservation-source": "tsx scripts/migrate-reservation-source.ts",
+    "migrate:request-processing": "prisma db execute --schema prisma/schema.prisma --file scripts/migrate-request-processing.sql"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

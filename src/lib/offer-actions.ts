@@ -5,6 +5,26 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-actions";
 
+function toIntOrNull(v: FormDataEntryValue | null) {
+  if (v == null || v === "") return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function toStrArray(v: FormDataEntryValue | null): string[] {
+  if (typeof v !== "string") return [];
+  return v
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function dateOrNull(v: FormDataEntryValue | null): Date | null {
+  if (typeof v !== "string" || v.trim() === "") return null;
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 function slugify(input: string) {
   return input
     .toLowerCase()
@@ -28,7 +48,16 @@ export async function saveOfferAction(formData: FormData) {
   const maxGuestsRaw = formData.get("maxGuests");
   const destinationId = String(formData.get("destinationId") ?? "");
   const coverImageId = String(formData.get("coverImageId") ?? "").trim() || null;
+  const inclusions = toStrArray(formData.get("inclusions"));
+  const exclusions = toStrArray(formData.get("exclusions"));
+  const promoPriceFCFA = toIntOrNull(formData.get("promoPriceFCFA"));
+  const promoEndsAt = dateOrNull(formData.get("promoEndsAt"));
+  const availabilityTypeRaw = String(formData.get("availabilityType") ?? "ON_DEMAND");
+  const availabilityType = availabilityTypeRaw === "FIXED_STOCK" ? "FIXED_STOCK" : "ON_DEMAND";
+  const stock = toIntOrNull(formData.get("stock"));
   const published = formData.get("published") === "on";
+  const featuredOnHome = formData.get("featuredOnHome") === "on";
+  const homeOrder = toIntOrNull(formData.get("homeOrder"));
 
   if (!title) return { error: "Le titre est requis." };
   if (!summary) return { error: "Le résumé est requis." };
@@ -59,7 +88,15 @@ export async function saveOfferAction(formData: FormData) {
     maxGuests: maxGuestsRaw ? Number(maxGuestsRaw) : null,
     destinationId,
     coverImageId,
+    inclusions,
+    exclusions,
+    promoPriceFCFA,
+    promoEndsAt,
+    availabilityType,
+    stock,
     published,
+    featuredOnHome,
+    homeOrder,
   };
 
   if (id) {

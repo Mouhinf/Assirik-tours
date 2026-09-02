@@ -14,6 +14,7 @@ const MATRIX: Record<AdminRole, Set<string>> = {
     "offers:read", "offers:write", "offers:delete",
     "reservations:read", "reservations:write", "reservations:delete",
     "clients:read", "clients:write", "clients:export",
+    "services:read", "services:write", "services:delete", "services:reorder",
     "visa:read", "visa:write", "visa:delete",
     "payments:read", "payments:refund",
     "media:read", "media:write", "media:delete",
@@ -36,6 +37,7 @@ const MATRIX: Record<AdminRole, Set<string>> = {
     "offers:read", "offers:write",
     "reservations:read", "reservations:write",
     "clients:read", "clients:write",
+    "services:read", "services:write", "services:reorder",
     "visa:read", "visa:write",
     "media:read", "media:write",
     "settings:read",
@@ -59,6 +61,7 @@ const MATRIX: Record<AdminRole, Set<string>> = {
     "reports:read",
     "audit:read",
     "faq:read",
+    "services:read",
   ]),
 };
 

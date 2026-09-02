@@ -114,10 +114,102 @@ export function parseTestimonialForm(form: FormData): ValidationResult<Testimoni
 }
 
 /**
+ * Public submission validator — used by the unauthenticated testimonial
+ * form on /temoignages/nouveau. Stricter than the admin validator:
+ *   - `locale` is taken from the i18n cookie (not the form) so attackers
+ *     can't mass-spam in "en" or any non-existent locale.
+ *   - No `approved`, no `order`, no avatar upload — those are admin-only.
+ *   - No email required (privacy-friendly); city and dateTrip stay
+ *     optional.
+ *
+ * Always paired with `approved: false` at the action layer (moderation
+ * queue) regardless of what the form posts.
+ */
+export type PublicTestimonialInput = {
+  author: string;
+  city: string | null;
+  content: string;
+  rating: number;
+  tripSlug: string | null;
+  locale: TestimonialLocale;
+  dateTrip: Date | null;
+};
+
+export function parsePublicTestimonialForm(
+  form: FormData,
+  locale: TestimonialLocale,
+): ValidationResult<PublicTestimonialInput> {
+  const author = str(form.get("author"));
+  const city = str(form.get("city")) || null;
+  const content = str(form.get("content"));
+  const tripSlugRaw = str(form.get("tripSlug")) || null;
+  const ratingRaw = intOpt(form.get("rating")) ?? 5;
+  const dateTripRaw = str(form.get("dateTrip"));
+
+  // ── Constraints (mirror the admin ones for consistency) ──
+  if (author.length < 2 || author.length > 100) {
+    return { ok: false, error: "Le nom doit faire entre 2 et 100 caractères." };
+  }
+  if (city !== null && city.length > 100) {
+    return { ok: false, error: "La ville ne peut pas dépasser 100 caractères." };
+  }
+  if (content.length < 20 || content.length > 2000) {
+    return { ok: false, error: "Le témoignage doit faire entre 20 et 2000 caractères." };
+  }
+  if (ratingRaw < 1 || ratingRaw > 5) {
+    return { ok: false, error: "La note doit être un entier entre 1 et 5." };
+  }
+  if (tripSlugRaw !== null && !SLUG_RE.test(tripSlugRaw)) {
+    return {
+      ok: false,
+      error: "Le voyage sélectionné est invalide.",
+    };
+  }
+
+  let dateTrip: Date | null = null;
+  if (dateTripRaw) {
+    const parsed = new Date(dateTripRaw);
+    if (Number.isNaN(parsed.getTime())) {
+      return { ok: false, error: "Date de voyage invalide." };
+    }
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    if (parsed.getTime() > today.getTime()) {
+      return { ok: false, error: "La date du voyage ne peut pas être dans le futur." };
+    }
+    dateTrip = parsed;
+  }
+
+  return {
+    ok: true,
+    data: {
+      author,
+      city,
+      content,
+      rating: ratingRaw,
+      tripSlug: tripSlugRaw,
+      locale,
+      dateTrip,
+    },
+  };
+}
+
+/**
  * Build the Prisma data shape from a validated TestimonialInput.
  * Separated so tests/callers can re-use the same normalization.
  */
-export function toTestimonialData(input: TestimonialInput) {
+/**
+ * Union of the two validated shapes. Lets the admin path and the public
+ * submission path share the same Prisma writer.
+ */
+export type TestimonialDataInput = TestimonialInput | PublicTestimonialInput;
+
+export function toTestimonialData(input: TestimonialDataInput) {
+  // Public submissions are always sent to the moderation queue with no
+  // avatar and a "last" order value (will be re-ordered by an admin).
+  const approved = "approved" in input ? input.approved : false;
+  const order = "order" in input ? input.order : 99;
+  const avatarId = "avatarId" in input ? input.avatarId : null;
   return {
     author: input.author,
     city: input.city,
@@ -125,9 +217,9 @@ export function toTestimonialData(input: TestimonialInput) {
     rating: input.rating,
     tripSlug: input.tripSlug,
     locale: input.locale,
-    avatarId: input.avatarId,
+    avatarId,
     dateTrip: input.dateTrip,
-    order: input.order,
-    approved: input.approved,
+    order,
+    approved,
   };
 }

@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { ReservationSource } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
+import { createReservationReference } from "@/lib/reservation-reference";
 
 type Params = Promise<{ slug: string }>;
 type SP = Promise<{ session_id?: string }>;
@@ -33,19 +35,29 @@ export default async function PaymentSuccessPage({ params, searchParams }: { par
                 },
                 update: {},
               });
-              await prisma.reservation.create({
-                data: {
-                  // eslint-disable-next-line react-hooks/purity
-                  // Reference generated server-side, no need for purity.
-                  reference: `AT-${new Date().getFullYear()}-${Math.floor(Math.random() * 90000 + 10000)}`,
-                  clientId: client.id,
-                  offerId: offer.id,
-                  travelers: 1,
-                  totalFCFA: Number(session.metadata?.amountFCFA ?? Math.round(offer.priceFCFA * 0.3)),
-                  status: "PAYEE",
-                  notes: `Stripe session ${session.id}`,
-                },
+              const stripeTag = `stripe:${session.id}`;
+              const existing = await prisma.reservation.findFirst({
+                where: { tags: { has: stripeTag } },
+                select: { id: true },
               });
+              if (!existing) {
+                await prisma.reservation.create({
+                  data: {
+                    reference: createReservationReference(),
+                    clientId: client.id,
+                    offerId: offer.id,
+                    destinationId: offer.destinationId,
+                    source: ReservationSource.OFFER,
+                    processingStatus: "NOUVEAU",
+                    subject: `Paiement — ${offer.title}`,
+                    travelers: 1,
+                    totalFCFA: Number(session.metadata?.amountFCFA ?? Math.round(offer.priceFCFA * 0.3)),
+                    status: "PAYEE",
+                    tags: ["Offre", "Paiement", stripeTag],
+                    notes: `Stripe session ${session.id}`,
+                  },
+                });
+              }
             }
           }
         }

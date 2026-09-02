@@ -47,12 +47,13 @@ export default async function AdminCommunicationsPage({
       <header>
         <h1 className="font-display text-3xl font-semibold text-navy">Communications</h1>
         <p className="mt-1 text-graphite">
-          Email transactionnel, SMS et WhatsApp — providers : Resend, Twilio, WhatsApp Cloud.
+          Email transactionnel, webhook interne, SMS et WhatsApp — providers configurables par environnement.
         </p>
       </header>
 
-      <section className="grid sm:grid-cols-3 gap-3">
+      <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <ProviderTile label="Email" provider={providers.email.provider} configured={providers.email.configured} />
+        <ProviderTile label="Webhook interne" provider={providers.webhook.provider} configured={providers.webhook.configured} />
         <ProviderTile label="SMS" provider={providers.sms.provider} configured={providers.sms.configured} />
         <ProviderTile label="WhatsApp" provider={providers.whatsapp.provider} configured={providers.whatsapp.configured} />
       </section>

@@ -10,12 +10,14 @@ type Item = { href: string; label: string; icon: string };
 
 const primaryItems: Item[] = [
   { href: "/admin", label: "Tableau de bord", icon: "dashboard" },
+  { href: '/admin/accueil', label: "Page d'accueil", icon: 'home' },
   { href: "/admin/reservations", label: "Réservations", icon: "calendar" },
   { href: "/admin/visa", label: "Dossiers visa", icon: "stamp" },
   { href: "/admin/clients", label: "Clients (CRM)", icon: "users" },
   { href: "/admin/paiements", label: "Paiements", icon: "card" },
   { href: "/admin/destinations", label: "Destinations", icon: "map" },
   { href: "/admin/offres", label: "Offres", icon: "ticket" },
+  { href: "/admin/services", label: "Services", icon: "compass" },
   { href: "/admin/media", label: "Médiathèque", icon: "image" },
   { href: "/admin/billetterie", label: "Billetterie", icon: "ticket" },
 ];
@@ -33,6 +35,7 @@ const contenuSubItems: ContenuSubItem[] = [
   { href: "/admin/blog", label: "Blog", icon: "blog", enabled: true },
   { href: "/admin/pages", label: "Pages", icon: "folder", enabled: true },
   { href: "/admin/galerie", label: "Galerie", icon: "gallery", enabled: true },
+  { href: "/admin/destinations/regions", label: "Régions", icon: "map", enabled: true },
 ];
 
 const trailingItems: Item[] = [
@@ -259,6 +262,15 @@ function Icon({ name, small = false }: { name: string; small?: boolean }) {
           <rect x="3" y="3" width="18" height="18" rx="2" />
           <circle cx="8.5" cy="8.5" r="1.5" />
           <polyline points="21 15 16 10 5 21" />
+        </svg>
+      );
+    case "home":
+      return <svg {...common}><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>;
+    case "compass":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="9" />
+          <polygon points="15.5 8.5 11 11 8.5 15.5 13 13" fill="currentColor" stroke="none" />
         </svg>
       );
     case "folder":

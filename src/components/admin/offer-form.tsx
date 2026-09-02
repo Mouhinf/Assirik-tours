@@ -18,7 +18,15 @@ type Initial = {
   maxGuests: number | null;
   destinationId: string;
   coverImageId: string;
+  inclusions: string[];
+  exclusions: string[];
+  promoPriceFCFA: number | null;
+  promoEndsAt: string | null;
+  availabilityType: string;
+  stock: number | null;
   published: boolean;
+  featuredOnHome: boolean;
+  homeOrder: number | null;
 };
 
 const KINDS: [string, string][] = [
@@ -40,12 +48,26 @@ export function OfferForm({
   destinations: Destination[];
 }) {
   const [coverImageId, setCoverImageId] = useState(initial?.coverImageId ?? "");
+  const [inclusions, setInclusions] = useState<string[]>(initial?.inclusions ?? []);
+  const [exclusions, setExclusions] = useState<string[]>(initial?.exclusions ?? []);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  function addItem(setter: (v: (prev: string[]) => string[]) => void) {
+    setter((prev) => [...prev, ""]);
+  }
+  function updateItem(setter: (v: (prev: string[]) => string[]) => void, idx: number, value: string) {
+    setter((prev) => prev.map((v, i) => (i === idx ? value : v)));
+  }
+  function removeItem(setter: (v: (prev: string[]) => string[]) => void, idx: number) {
+    setter((prev) => prev.filter((_, i) => i !== idx));
+  }
 
   function onSubmit(formData: FormData) {
     setError(null);
     formData.set("coverImageId", coverImageId);
+    formData.set("inclusions", inclusions.map((s) => s.trim()).filter(Boolean).join("\n"));
+    formData.set("exclusions", exclusions.map((s) => s.trim()).filter(Boolean).join("\n"));
 
     startTransition(async () => {
       const res = await saveOfferAction(formData);
@@ -161,7 +183,111 @@ export function OfferForm({
         </div>
       </section>
 
-      <Toggle label="Publiée (visible sur le site)" defaultChecked={initial?.published ?? false} />
+      <section className="rounded-xl border border-sand-deep bg-sand p-5 space-y-3">
+        <h3 className="font-display text-base font-semibold text-navy">
+          Inclusions & exclusions
+        </h3>
+        <p className="text-xs text-silver">
+          Listez ce que l’offre comprend (et ce qu’elle ne comprend pas). Un élément par ligne.
+        </p>
+        <ListEditor
+          label="Inclusions"
+          items={inclusions}
+          onAdd={() => addItem(setInclusions)}
+          onChange={(i, v) => updateItem(setInclusions, i, v)}
+          onRemove={(i) => removeItem(setInclusions, i)}
+          accent="ocean"
+        />
+        <ListEditor
+          label="Exclusions"
+          items={exclusions}
+          onAdd={() => addItem(setExclusions)}
+          onChange={(i, v) => updateItem(setExclusions, i, v)}
+          onRemove={(i) => removeItem(setExclusions, i)}
+          accent="sunrise-coral"
+        />
+      </section>
+
+      <section className="rounded-xl border border-sand-deep bg-sand p-5 space-y-4">
+        <h3 className="font-display text-base font-semibold text-navy">
+          Promotion
+        </h3>
+        <p className="text-xs text-silver">
+          Renseignez un prix barré + un prix promo + une date de fin. Si vide, l’offre est
+          affichée à son prix normal.
+        </p>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Field
+            label="Prix promotionnel (FCFA)"
+            name="promoPriceFCFA"
+            type="number"
+            defaultValue={initial?.promoPriceFCFA ?? ""}
+            placeholder="Optionnel"
+          />
+          <Field
+            label="Fin de la promotion"
+            name="promoEndsAt"
+            type="text"
+            defaultValue={initial?.promoEndsAt ?? ""}
+            placeholder="AAAA-MM-JJ"
+            help="Laissez vide pour une promo sans limite de durée."
+          />
+        </div>
+      </section>
+
+      <section className="rounded-xl border border-sand-deep bg-sand p-5 space-y-4">
+        <h3 className="font-display text-base font-semibold text-navy">
+          Disponibilités
+        </h3>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <SelectField
+            label="Type de disponibilité"
+            name="availabilityType"
+            options={[
+              ["ON_DEMAND", "Sur demande"],
+              ["FIXED_STOCK", "Places limitées"],
+            ]}
+            defaultValue={initial?.availabilityType ?? "ON_DEMAND"}
+          />
+          <Field
+            label="Places restantes"
+            name="stock"
+            type="number"
+            defaultValue={initial?.stock ?? ""}
+            placeholder="Requis si Places limitées"
+          />
+        </div>
+      </section>
+
+      <Toggle name="published" label="Publiée (visible sur le site)" defaultChecked={initial?.published ?? false} />
+
+      <div className="flex flex-wrap gap-6">
+        <Toggle
+          name="featuredOnHome"
+          label="Mettre en avant sur la page d&apos;accueil"
+          defaultChecked={initial?.featuredOnHome ?? false}
+        />
+      </div>
+
+      <div className="max-w-xs">
+        <label className="block">
+          <span className="block text-xs font-semibold uppercase tracking-wider text-graphite mb-1.5">
+            Position sur la page d&apos;accueil
+          </span>
+          <input
+            type="number"
+            name="homeOrder"
+            min={0}
+            step={1}
+            defaultValue={initial?.homeOrder ?? ""}
+            placeholder="Vide = masqué"
+            className="w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-sm text-navy focus:border-ocean outline-none"
+          />
+          <span className="block mt-1 text-xs text-silver">
+            1, 2, 3… Trié par ordre croissant. N&apos;a d&apos;effet que si &quot;Mettre en avant&quot; est coché.
+          </span>
+        </label>
+      </div>
 
       {error && (
         <p className="rounded-lg bg-sunrise-coral/10 border border-sunrise-coral/30 px-4 py-3 text-sm text-sunrise-coral">
@@ -191,6 +317,8 @@ function Field({
   required,
   defaultValue,
   rows,
+  placeholder,
+  help,
 }: {
   label: string;
   name: string;
@@ -198,6 +326,8 @@ function Field({
   required?: boolean;
   defaultValue?: string | number;
   rows?: number;
+  placeholder?: string;
+  help?: string;
 }) {
   return (
     <label className="block">
@@ -211,7 +341,8 @@ function Field({
           required={required}
           rows={rows ?? 3}
           defaultValue={defaultValue as string | undefined}
-          className="w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-sm text-navy focus:border-ocean outline-none"
+          placeholder={placeholder}
+          className="w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-sm text-navy placeholder:text-silver focus:border-ocean outline-none"
         />
       ) : (
         <input
@@ -219,9 +350,13 @@ function Field({
           name={name}
           required={required}
           defaultValue={defaultValue}
-          className="w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-sm text-navy focus:border-ocean outline-none"
+          placeholder={placeholder}
+          className="w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-sm text-navy placeholder:text-silver focus:border-ocean outline-none"
         />
       )}
+      {help ? (
+        <span className="mt-1 block text-[0.7rem] text-silver">{help}</span>
+      ) : null}
     </label>
   );
 }
@@ -258,9 +393,11 @@ function SelectField({
 }
 
 function Toggle({
+  name,
   label,
   defaultChecked,
 }: {
+  name: string;
   label: string;
   defaultChecked: boolean;
 }) {
@@ -268,11 +405,68 @@ function Toggle({
     <label className="inline-flex items-center gap-3 cursor-pointer">
       <input
         type="checkbox"
-        name="published"
+        name={name}
         defaultChecked={defaultChecked}
         className="h-4 w-4 rounded border-sand-deep text-ocean focus:ring-ocean"
       />
       <span className="text-sm text-navy">{label}</span>
     </label>
+  );
+}
+
+function ListEditor({
+  label,
+  items,
+  onAdd,
+  onChange,
+  onRemove,
+  accent,
+}: {
+  label: string;
+  items: string[];
+  onAdd: () => void;
+  onChange: (idx: number, value: string) => void;
+  onRemove: (idx: number) => void;
+  accent: "ocean" | "sunrise-coral";
+}) {
+  const dotColor = accent === "ocean" ? "bg-ocean" : "bg-sunrise-coral";
+  return (
+    <div>
+      <span className="block text-xs font-semibold uppercase tracking-wider text-graphite mb-1.5">
+        {label}
+      </span>
+      <div className="space-y-2">
+        {items.length === 0 ? (
+          <p className="text-xs text-silver italic">Aucun élément. Cliquez sur « Ajouter ».</p>
+        ) : (
+          items.map((it, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className={"h-2 w-2 rounded-full " + dotColor} aria-hidden />
+              <input
+                type="text"
+                value={it}
+                onChange={(e) => onChange(i, e.target.value)}
+                className="flex-1 rounded-lg border border-sand-deep bg-sand px-3 py-1.5 text-sm text-navy focus:border-ocean outline-none"
+                placeholder={label + " #" + (i + 1)}
+              />
+              <button
+                type="button"
+                onClick={() => onRemove(i)}
+                className="text-xs text-sunrise-coral hover:underline"
+              >
+                Retirer
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={onAdd}
+        className="mt-2 text-xs font-semibold text-ocean hover:text-navy"
+      >
+        + Ajouter
+      </button>
+    </div>
   );
 }

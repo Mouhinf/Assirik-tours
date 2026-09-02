@@ -24,6 +24,10 @@ function toIntOrNull(v: FormDataEntryValue | null) {
   return Number.isFinite(n) ? n : null;
 }
 
+function str(v: FormDataEntryValue | null): string {
+  return typeof v === "string" ? v.trim() : "";
+}
+
 function toStringArray(v: FormDataEntryValue | null): string[] {
   if (!v) return [];
   return String(v)
@@ -47,6 +51,9 @@ export async function saveDestinationAction(formData: FormData) {
   const gallery = toStringArray(formData.get("gallery"));
   const published = formData.get("published") === "on";
   const featured = formData.get("featured") === "on";
+  const homeOrder = toIntOrNull(formData.get("homeOrder"));
+  const customRegionIdRaw = str(formData.get("customRegionId"));
+  const customRegionId = customRegionIdRaw || null;
 
   if (!title) return { error: "Le titre est requis." };
   if (!summary) return { error: "Le résumé est requis." };
@@ -80,6 +87,8 @@ export async function saveDestinationAction(formData: FormData) {
     gallery,
     published,
     featured,
+    homeOrder,
+    customRegionId,
   };
 
   if (id) {

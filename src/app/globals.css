@@ -24,6 +24,7 @@
 
   /* Neutrals (sand evokes Senegalese beaches — avoid cold pure white) */
   --color-sand: #f7f5f0;
+  --color-sand-warm: #fffaec;          /* warm tint of sand, used as a hero glow */
   --color-sand-deep: #ede8de;
   --color-anthracite: #20242b;
   --color-graphite: #4a5159;            /* bumped darker — silver was too low contrast */

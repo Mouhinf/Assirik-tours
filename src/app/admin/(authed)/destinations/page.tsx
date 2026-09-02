@@ -1,24 +1,19 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { deliveryUrl } from "@/lib/cloudinary-url";
-
-const REGION_LABELS: Record<string, string> = {
-  DAKAR: "Dakar",
-  NIAYES: "Niayes",
-  PETITE_COTE: "Petite-Côte",
-  CASAMANCE: "Casamance",
-  SENEGAL_ORIENTAL: "Sénégal Oriental",
-  SAINT_LOUIS: "Saint-Louis",
-  AFRIQUE_OUEST: "Afrique de l'Ouest",
-  EUROPE: "Europe",
-  MOYEN_ORIENT: "Moyen-Orient",
-  ASIE: "Asie",
-  AMERIQUE: "Amérique",
-};
+import { REGION_LABELS_FR } from "@/lib/regions";
 
 export default async function AdminDestinationsListPage() {
   const destinations = await prisma.destination.findMany({
     orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
+    include: {
+      customRegion: { select: { id: true, labelFr: true } },
+      _count: {
+        select: {
+          offers: true,
+        },
+      },
+    },
   });
 
   return (
@@ -43,7 +38,7 @@ export default async function AdminDestinationsListPage() {
       <div className="rounded-xl bg-sand border border-sand-deep overflow-hidden">
         {destinations.length === 0 ? (
           <div className="p-12 text-center">
-            <p className="text-graphite">Aucune destination pour l'instant.</p>
+            <p className="text-graphite">Aucune destination pour l&apos;instant.</p>
             <Link
               href="/admin/destinations/new"
               className="mt-3 inline-block text-sm font-semibold text-ocean hover:text-navy"
@@ -57,6 +52,7 @@ export default async function AdminDestinationsListPage() {
               <tr>
                 <th className="text-left px-4 py-3 font-semibold">Destination</th>
                 <th className="text-left px-4 py-3 font-semibold">Région</th>
+                <th className="text-right px-4 py-3 font-semibold">Offres</th>
                 <th className="text-left px-4 py-3 font-semibold">Statut</th>
                 <th className="text-right px-4 py-3 font-semibold">Actions</th>
               </tr>
@@ -87,7 +83,12 @@ export default async function AdminDestinationsListPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-graphite">
-                    {REGION_LABELS[d.region] ?? d.region}
+                    {d.customRegion
+                      ? d.customRegion.labelFr
+                      : REGION_LABELS_FR[d.region] ?? d.region}
+                  </td>
+                  <td className="px-4 py-3 text-right text-graphite">
+                    {d._count.offers}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">

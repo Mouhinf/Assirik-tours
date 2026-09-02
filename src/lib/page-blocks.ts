@@ -37,6 +37,15 @@ export type BlockTeamGridProps = {
   }>;
 };
 
+export type BlockCredentialsGridProps = {
+  items: Array<{
+    name: string;
+    issuer?: string;
+    description?: string;
+    badgeId?: string;
+  }>;
+};
+
 export type BlockServiceListProps = {
   services: Array<{
     title: string;
@@ -68,6 +77,7 @@ export type Block =
   | { type: "two-column"; props: BlockTwoColumnProps }
   | { type: "stats"; props: BlockStatsProps }
   | { type: "team-grid"; props: BlockTeamGridProps }
+  | { type: "credentials-grid"; props: BlockCredentialsGridProps }
   | { type: "service-list"; props: BlockServiceListProps }
   | { type: "image"; props: BlockImageProps }
   | { type: "cta-banner"; props: BlockCtaBannerProps }
@@ -79,6 +89,7 @@ export const BLOCK_TYPES = [
   "two-column",
   "stats",
   "team-grid",
+  "credentials-grid",
   "service-list",
   "image",
   "cta-banner",
@@ -93,6 +104,7 @@ export const BLOCK_LABELS_FR: Record<BlockType, string> = {
   "two-column": "Deux colonnes",
   stats: "Statistiques",
   "team-grid": "Équipe",
+  "credentials-grid": "Agréments & certifications",
   "service-list": "Liste de services",
   image: "Image",
   "cta-banner": "Bandeau CTA",
@@ -105,6 +117,7 @@ export const BLOCK_LABELS_EN: Record<BlockType, string> = {
   "two-column": "Two columns",
   stats: "Stats",
   "team-grid": "Team grid",
+  "credentials-grid": "Credentials grid",
   "service-list": "Service list",
   image: "Image",
   "cta-banner": "CTA banner",
@@ -128,6 +141,13 @@ export function emptyBlock(type: BlockType): Block {
           members: [
             { name: "Membre 1", role: "Rôle", bio: "" },
           ],
+        },
+      };
+    case "credentials-grid":
+      return {
+        type,
+        props: {
+          items: [{ name: "Agréments", issuer: "Émetteur", description: "" }],
         },
       };
     case "service-list":

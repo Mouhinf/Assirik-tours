@@ -4,6 +4,12 @@ import { useState, useTransition } from "react";
 import { saveTestimonialAction } from "@/lib/testimonial-actions";
 import { MediaUploader } from "./media-uploader";
 
+type TripOption = {
+  slug: string;
+  title: string;
+  kind: "destination" | "offer";
+};
+
 type Initial = {
   id?: string;
   author: string;
@@ -18,25 +24,14 @@ type Initial = {
   approved: boolean;
 };
 
-const SLUG_SUGGESTIONS = [
-  "saly-portudal",
-  "goree",
-  "casamance",
-  "lac-rose",
-  "lompoul",
-  "saint-louis",
-  "omra",
-  "maroc",
-  "turquie",
-  "dubai",
-];
-
 export function TestimonialForm({
   mode,
   initial,
+  tripOptions,
 }: {
   mode: "create" | "edit";
   initial?: Initial;
+  tripOptions: TripOption[];
 }) {
   const [avatarId, setAvatarId] = useState(initial?.avatarId ?? "");
   const [rating, setRating] = useState<number>(initial?.rating ?? 5);
@@ -142,20 +137,35 @@ export function TestimonialForm({
               <span className="block text-xs font-semibold uppercase tracking-wider text-graphite mb-1.5">
                 Voyage lié (optionnel)
               </span>
-              <input
-                list="trip-slugs"
+              <select
                 name="tripSlug"
                 defaultValue={initial?.tripSlug ?? ""}
-                placeholder="ex: casamance-7j"
-                className="w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-sm text-navy focus:border-ocean outline-none transition-colors"
-              />
-              <datalist id="trip-slugs">
-                {SLUG_SUGGESTIONS.map((s) => (
-                  <option key={s} value={s} />
-                ))}
-              </datalist>
+                className="w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-sm text-navy focus:border-ocean outline-none"
+              >
+                <option value="">— Aucun —</option>
+                <optgroup label="Destinations">
+                  {tripOptions
+                    .filter((t) => t.kind === "destination")
+                    .map((t) => (
+                      <option key={t.slug} value={t.slug}>
+                        {t.title}
+                      </option>
+                    ))}
+                </optgroup>
+                <optgroup label="Offres">
+                  {tripOptions
+                    .filter((t) => t.kind === "offer")
+                    .map((t) => (
+                      <option key={t.slug} value={t.slug}>
+                        {t.title}
+                      </option>
+                    ))}
+                </optgroup>
+              </select>
+              <p className="mt-1 text-xs text-silver">
+                Lien « Voir ce voyage » affiché sous le témoignage.
+              </p>
             </label>
-            <p className="mt-1 text-xs text-silver">Slug destination ou offre. Affiche un lien « Voir ce voyage ».</p>
           </div>
 
           <div>

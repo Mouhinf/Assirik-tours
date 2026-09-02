@@ -9,6 +9,7 @@ import type {
   BlockTwoColumnProps,
   BlockStatsProps,
   BlockTeamGridProps,
+  BlockCredentialsGridProps,
   BlockServiceListProps,
   BlockImageProps,
   BlockCtaBannerProps,
@@ -33,6 +34,8 @@ export function PageBlockRenderer({ block }: { block: Block }) {
       return <StatsBlock props={block.props} />;
     case "team-grid":
       return <TeamGridBlock props={block.props} />;
+    case "credentials-grid":
+      return <CredentialsGridBlock props={block.props} />;
     case "service-list":
       return <ServiceListBlock props={block.props} />;
     case "image":
@@ -172,6 +175,79 @@ function TeamGridBlock({ props }: { props: BlockTeamGridProps }) {
             </div>
           </article>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function CredentialsGridBlock({ props }: { props: BlockCredentialsGridProps }) {
+  return (
+    <section className="container-narrow pb-12">
+      <div className="rounded-2xl border border-sand-deep bg-sand-deep/20 p-6 md:p-10">
+        <p className="text-xs font-semibold uppercase tracking-wider text-sunrise-coral text-center">
+          Agréments & certifications
+        </p>
+        <h2 className="mt-2 text-center font-display text-2xl md:text-3xl font-semibold text-navy text-balance">
+          Reconnu par les institutions et les compagnies
+        </h2>
+        <p className="mx-auto mt-3 max-w-2xl text-center text-sm text-graphite leading-relaxed">
+          Licences, agréments et partenariats qui encadrent notre activité au Sénégal
+          et à l&apos;international.
+        </p>
+        <ul className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {props.items.map((c, i) => {
+            const badgeUrl = c.badgeId ? resolveImage(c.badgeId, 240, 240) : "";
+            return (
+              <li
+                key={i}
+                className="flex flex-col items-center gap-3 rounded-xl bg-sand border border-sand-deep p-5 text-center transition-shadow hover:shadow-soft"
+              >
+                {badgeUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={badgeUrl}
+                    alt={c.name}
+                    loading="lazy"
+                    className="h-16 w-16 object-contain"
+                  />
+                ) : (
+                  <span
+                    aria-hidden
+                    className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-ocean/10 text-ocean"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="28"
+                      height="28"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" />
+                    </svg>
+                  </span>
+                )}
+                <div>
+                  <p className="font-display text-sm font-semibold text-navy">
+                    {c.name}
+                  </p>
+                  {c.issuer ? (
+                    <p className="text-[0.7rem] uppercase tracking-wider text-graphite mt-0.5">
+                      {c.issuer}
+                    </p>
+                  ) : null}
+                  {c.description ? (
+                    <p className="mt-1 text-xs text-graphite leading-relaxed line-clamp-3">
+                      {c.description}
+                    </p>
+                  ) : null}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </section>
   );

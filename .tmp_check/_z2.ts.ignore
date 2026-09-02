@@ -1,0 +1,13 @@
+import { PrismaClient } from "@prisma/client";
+async function main() {
+  const p = new PrismaClient();
+  try {
+    const count = await p.service.count();
+    console.log("service.count =", count);
+  } catch (e) {
+    console.log("ERROR:", (e as Error).message);
+  } finally {
+    await p.$disconnect();
+  }
+}
+main();

@@ -7,6 +7,7 @@ import { BlogPostCard } from "@/components/blog/post-card";
 import { renderBlogBody, readSeoMeta, BLOG_CATEGORY_LABELS_FR } from "@/lib/validators/blog";
 import { breadcrumbJsonLd } from "@/lib/seo/jsonld";
 import { ShareLinkButton as ShareLink } from "@/components/blog/share-link-button";
+import { BlogPostCta } from "@/components/blog/blog-post-cta";
 
 type Params = Promise<{ slug: string }>;
 
@@ -148,6 +149,8 @@ export default async function BlogPostPage({ params }: { params: Params }) {
           dangerouslySetInnerHTML={{ __html: bodyHtml }}
         />
 
+        <BlogPostCta category={post.category} postTitle={post.title} />
+
         {post.tags.length > 0 ? (
           <div className="container-narrow max-w-3xl pb-12">
             <p className="flex flex-wrap gap-2">
@@ -216,6 +219,11 @@ export default async function BlogPostPage({ params }: { params: Params }) {
               "@id": `/blog/${post.slug}`,
             },
             keywords: post.tags.join(", "),
+            articleSection: post.category
+              ? BLOG_CATEGORY_LABELS_FR[
+                  post.category as keyof typeof BLOG_CATEGORY_LABELS_FR
+                ]
+              : undefined,
             inLanguage: "fr",
             wordCount: post.body.split(/\s+/).length,
           }),

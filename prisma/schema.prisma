@@ -36,23 +36,53 @@ enum DestinationRegion {
 }
 
 model Destination {
-  id          String            @id @default(cuid())
-  slug        String            @unique
-  title       String
-  region      DestinationRegion
-  summary     String
-  description String?           @db.Text
-  heroImageId String? // Cloudinary public_id
-  gallery     String[]          @default([]) // Cloudinary public_ids
-  published   Boolean           @default(false)
-  featured    Boolean           @default(false)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  id             String            @id @default(cuid())
+  slug           String            @unique
+  title          String
+  region         DestinationRegion
+  summary        String
+  description    String?           @db.Text
+  heroImageId    String? // Cloudinary public_id
+  gallery        String[]          @default([]) // Cloudinary public_ids
+  published      Boolean           @default(false)
+  featured       Boolean           @default(false)
+  homeOrder      Int? // null = masqué en accueil. Sinon trié par ordre croissant.
+  // Optional FK to an admin-managed Region row (used when the region
+  // does not map to a value in the DestinationRegion enum).
+  customRegionId String?
+  customRegion   Region?           @relation("DestinationCustomRegion", fields: [customRegionId], references: [id], onDelete: SetNull)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
 
-  offers Offer[]
+  offers       Offer[]
+  reservations Reservation[] @relation("DestinationReservations")
 
   @@index([region])
   @@index([published, featured])
+  @@index([customRegionId])
+}
+
+// ── Régions (admin-gérées) ────────────────────────────────────────────────
+
+model Region {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  labelFr        String
+  labelEn        String
+  /// "senegal" | "international" — used to group the filter UI.
+  group          String   @default("international")
+  /// Legacy enum values that match this Region. A Destination with `region`
+  /// set to one of these keys will be included when this Region is selected
+  /// in the public filter. Empty for fully custom regions.
+  legacyEnumKeys String[] @default([])
+  order          Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  destinations Destination[] @relation("DestinationCustomRegion")
+
+  @@index([isActive, order])
 }
 
 // ── Offres ─────────────────────────────────────────────────────────────
@@ -67,20 +97,32 @@ enum OfferKind {
 }
 
 model Offer {
-  id           String    @id @default(cuid())
-  slug         String    @unique
-  title        String
-  kind         OfferKind
-  summary      String
-  description  String?   @db.Text
-  priceFCFA    Int // in FCFA, integer (no decimals)
-  durationDays Int?
-  maxGuests    Int?
-  coverImageId String?
-  gallery      String[]  @default([])
-  published    Boolean   @default(false)
-  startDate    DateTime?
-  endDate      DateTime?
+  id               String    @id @default(cuid())
+  slug             String    @unique
+  title            String
+  kind             OfferKind
+  summary          String
+  description      String?   @db.Text
+  priceFCFA        Int // in FCFA, integer (no decimals)
+  durationDays     Int?
+  maxGuests        Int?
+  coverImageId     String?
+  gallery          String[]  @default([])
+  inclusions       String[]  @default([]) // "Vols A/R", "Hébergement 7 nuits", ...
+  exclusions       String[]  @default([]) // "Boissons", "Pourboires", ...
+  /// Promotional pricing. When set and not expired, displayed as the current
+  /// price on the public site (with `priceFCFA` shown as the strikethrough).
+  promoPriceFCFA   Int?
+  promoEndsAt      DateTime?
+  /// "ON_DEMAND" (sur devis, no stock cap) | "FIXED_STOCK" (limited seats)
+  availabilityType String    @default("ON_DEMAND")
+  /// Remaining seats. Required when availabilityType = "FIXED_STOCK".
+  stock            Int?
+  featuredOnHome   Boolean   @default(false)
+  homeOrder        Int? // null = pas d'affichage. Sinon trié croissant (1, 2, 3…).
+  published        Boolean   @default(false)
+  startDate        DateTime?
+  endDate          DateTime?
 
   destinationId String
   destination   Destination @relation(fields: [destinationId], references: [id], onDelete: Restrict)
@@ -92,6 +134,7 @@ model Offer {
 
   @@index([destinationId, published])
   @@index([kind, published])
+  @@index([promoEndsAt])
 }
 
 // ── Réservations ──────────────────────────────────────────────────────
@@ -103,6 +146,29 @@ enum ReservationStatus {
   PAYEE
   ANNULEE
   TERMINEE
+}
+
+// Commercial follow-up state for every inbound request. This intentionally
+// stays separate from ReservationStatus: a paid/confirmed booking can still
+// be waiting for a commercial follow-up, and processing a lead must not
+// change its payment/booking lifecycle.
+enum RequestStatus {
+  NOUVEAU
+  EN_COURS
+  TRAITE
+}
+
+/**
+ * Source of the reservation — set explicitly by the action that created it.
+ * Lets the admin have a single, unified view of all inbound requests
+ * (contact form, destination lead, offer quote, flight quote) without
+ * having to infer it from `tags` or `offerId`.
+ */
+enum ReservationSource {
+  CONTACT // /contact generic form
+  DESTINATION // destination detail page ("Demander un devis")
+  OFFER // offer detail page
+  FLIGHT // /billetterie (mock or real provider)
 }
 
 model Client {
@@ -118,17 +184,26 @@ model Client {
 }
 
 model Reservation {
-  id              String            @id @default(cuid())
-  reference       String            @unique // e.g. "AT-2026-00042"
-  status          ReservationStatus @default(NOUVELLE)
-  clientAccountId String?
-  clientAccount   ClientAccount?    @relation("ClientAccountReservations", fields: [clientAccountId], references: [id], onDelete: SetNull)
+  id               String            @id @default(cuid())
+  reference        String            @unique // e.g. "AT-2026-00042"
+  status           ReservationStatus @default(NOUVELLE)
+  processingStatus RequestStatus     @default(NOUVEAU)
+  source           ReservationSource @default(CONTACT)
+  subject          String?           @db.VarChar(160) // short objet, shown in admin list
+  clientAccountId  String?
+  clientAccount    ClientAccount?    @relation("ClientAccountReservations", fields: [clientAccountId], references: [id], onDelete: SetNull)
+
+  // Optional assignment to an admin user (agent commercial). Lets the
+  // super-admin dispatch new leads and lets each agent see only theirs.
+  assigneeId String?
+  assignee   AdminUser? @relation("ReservationAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
 
   // Snapshot of the trip at booking time
   travelers Int       @default(1)
   startDate DateTime?
   totalFCFA Int
   notes     String?   @db.Text
+  tags      String[]  @default([]) // ["Billetterie"], ["Sur-mesure"], ["Omra"], etc.
 
   clientId String
   client   Client @relation(fields: [clientId], references: [id], onDelete: Restrict)
@@ -136,11 +211,23 @@ model Reservation {
   offerId String?
   offer   Offer?  @relation(fields: [offerId], references: [id], onDelete: SetNull)
 
+  // Direct link to the destination when the lead came from a destination
+  // page. Distinct from offer.destinationId — a "Demander un devis" on
+  // /destinations/[slug] without picking an offer should still resolve
+  // to the right destination in the admin.
+  destinationId String?
+  destination   Destination? @relation("DestinationReservations", fields: [destinationId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([status])
+  @@index([processingStatus])
+  @@index([source])
+  @@index([assigneeId])
+  @@index([destinationId])
   @@index([createdAt])
+  @@index([tags])
 }
 
 // ── Auth (admin) ──────────────────────────────────────────────────────
@@ -152,17 +239,43 @@ enum AdminRole {
 }
 
 model AdminUser {
-  id                  String               @id @default(cuid())
-  email               String               @unique
-  passwordHash        String
-  name                String
-  role                AdminRole            @default(AGENT)
-  twoFactorEnabled    Boolean              @default(false)
-  blogPosts           BlogPost[]
-  lastLoginAt         DateTime?
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  newsletterCampaigns NewsletterCampaign[]
+  id                   String               @id @default(cuid())
+  email                String               @unique
+  passwordHash         String
+  name                 String
+  role                 AdminRole            @default(AGENT)
+  twoFactorEnabled     Boolean              @default(false)
+  blogPosts            BlogPost[]
+  assignedReservations Reservation[]        @relation("ReservationAssignee")
+  lastLoginAt          DateTime?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  newsletterCampaigns  NewsletterCampaign[]
+}
+
+// ── Services (CMS — back-office driven) ──────────────────────────
+
+model Service {
+  id               String          @id @default(cuid())
+  slug             String          @unique
+  title            String
+  shortDescription String          @db.VarChar(280)
+  longDescription  String?         @db.Text
+  category         ServiceCategory
+  icon             String? // "stamp" | "hotel" | "car" | "shield" | "transfer" | "briefcase" | "compass"
+  imageId          String? // Cloudinary public_id (visuel par défaut)
+  priceFromFCFA    Int? // "à partir de" — null = "Sur devis"
+  priceNote        String? // ex: "par nuit", "par course"
+  order            Int             @default(0)
+  isActive         Boolean         @default(true)
+  isFeatured       Boolean         @default(false)
+  ctaLabel         String? // default "Demander un devis"
+  ctaHref          String? // default "/contact?service=<slug>"
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([isActive, order])
+  @@index([category, isActive])
 }
 
 // ── Visa dossiers (Phase 2 — structure in place) ───────────────────────
@@ -173,6 +286,16 @@ enum VisaStatus {
   EN_TRAITEMENT
   ACCEPTE
   REFUSE
+}
+
+enum ServiceCategory {
+  VISA
+  HOTELS
+  CHAUFFEUR
+  ASSURANCE
+  TRANSFERT
+  ENTREPRISE
+  AUTRE
 }
 
 model VisaDossier {
@@ -269,6 +392,17 @@ model SiteSetting {
   id        String   @id @default("singleton")
   data      Json
   updatedAt DateTime @updatedAt
+}
+
+model FlightConfig {
+  // Single-row config for the /billetterie module (admin-editable notes,
+  // override contact channels). Provider selection itself stays in
+  // FLIGHT_PROVIDER env var — see /docs/flight-provider.md.
+  id           String   @id @default("singleton")
+  notes        String?  @db.Text // internal notes for the team
+  contactEmail String? // optional override for the "Devis reçu" email
+  contactPhone String? // optional override phone displayed on admin
+  updatedAt    DateTime @updatedAt
 }
 
 // ── FAQ (back-office-driven, public listing) ──────────────────

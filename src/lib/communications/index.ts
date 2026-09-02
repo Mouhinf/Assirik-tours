@@ -22,11 +22,18 @@ export function getProvider(channel: Channel): Provider {
   }
 }
 
-export function getProvidersStatus(): Record<Channel, { provider: string; configured: boolean }> {
+export function getProvidersStatus(): Record<
+  Channel | "webhook",
+  { provider: string; configured: boolean }
+> {
   return {
     email: { provider: resendProvider.name, configured: resendProvider.configured },
     sms: { provider: twilioProvider.name, configured: twilioProvider.configured },
     whatsapp: { provider: whatsappCloudProvider.name, configured: whatsappCloudProvider.configured },
+    webhook: {
+      provider: "internal_webhook",
+      configured: Boolean(process.env.INTERNAL_NOTIFICATION_WEBHOOK_URL),
+    },
   };
 }
 

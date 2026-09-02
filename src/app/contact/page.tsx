@@ -3,6 +3,7 @@ import { PageHero } from "@/components/site/page-hero";
 import { ContactForm } from "@/components/site/contact-form";
 import { siteConfig } from "@/lib/site-config";
 import { whatsappLink } from "@/lib/whatsapp";
+import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -10,7 +11,72 @@ export const metadata: Metadata = {
     "Contacter l'agence Assirik Tours à Dakar : adresse, téléphone, WhatsApp, e-mail. Réponse sous 24h ouvrées.",
 };
 
-export default function ContactPage() {
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    service?: string;
+    objet?: string;
+    destination?: string;
+    offer?: string;
+  }>;
+}) {
+  const sp = await searchParams;
+  const serviceSlug = typeof sp.service === "string" ? sp.service : null;
+  const objet = typeof sp.objet === "string" ? sp.objet : null;
+  const destinationSlug =
+    typeof sp.destination === "string" ? sp.destination : null;
+  const offerSlug = typeof sp.offer === "string" ? sp.offer : null;
+
+  // Pre-fill from a Service, Destination or Offer if requested
+  let preselectedService: { title: string; category: string } | null = null;
+  let preselectedDestination: { title: string } | null = null;
+  let preselectedOffer: { title: string } | null = null;
+
+  const [serviceRow, destinationRow, offerRow] = await Promise.all([
+    serviceSlug
+      ? prisma.service.findUnique({
+          where: { slug: serviceSlug },
+          select: { title: true, category: true },
+        })
+      : Promise.resolve(null),
+    destinationSlug
+      ? prisma.destination.findUnique({
+          where: { slug: destinationSlug },
+          select: { title: true },
+        })
+      : Promise.resolve(null),
+    offerSlug
+      ? prisma.offer.findUnique({
+          where: { slug: offerSlug },
+          select: { title: true },
+        })
+      : Promise.resolve(null),
+  ]);
+  if (serviceRow) preselectedService = serviceRow;
+  if (destinationRow) preselectedDestination = destinationRow;
+  if (offerRow) preselectedOffer = offerRow;
+
+  const subjectTitle =
+    preselectedService?.title ??
+    preselectedDestination?.title ??
+    preselectedOffer?.title;
+  const defaultSubject = subjectTitle
+    ? `Demande — ${subjectTitle}`
+    : objet === "service-sur-mesure"
+      ? "Demande — service sur mesure"
+      : undefined;
+
+  const defaultMessage = preselectedService
+    ? `Bonjour,\n\nJe souhaite en savoir plus sur le service « ${preselectedService.title} » (catégorie : ${preselectedService.category}).\n\nPrécisions sur mon besoin :\n`
+    : preselectedDestination
+      ? `Bonjour,\n\nJe souhaite en savoir plus sur la destination « ${preselectedDestination.title} ».\n\nDates envisagées et voyageurs :\n`
+      : preselectedOffer
+        ? `Bonjour,\n\nJe souhaite un devis pour l'offre « ${preselectedOffer.title} ».\n\nDates souhaitées et voyageurs :\n`
+        : objet === "service-sur-mesure"
+          ? "Bonjour,\n\nJ'ai un besoin spécifique qui ne figure pas dans vos prestations classiques.\n\nDescription du besoin :\n"
+          : undefined;
+
   return (
     <>
       <PageHero
@@ -80,7 +146,23 @@ export default function ContactPage() {
               nombre de voyageurs. Un conseiller vous répond sous 24h ouvrées.
             </p>
 
-            <ContactForm />
+            {preselectedService ? (
+              <div className="mt-4 rounded-lg border border-ocean/30 bg-ocean/5 px-4 py-3 text-sm text-graphite">
+                <span className="text-xs font-semibold uppercase tracking-wider text-ocean">
+                  Service présélectionné
+                </span>
+                <p className="mt-0.5 font-semibold text-navy">
+                  {preselectedService.title}
+                </p>
+              </div>
+            ) : null}
+
+            <ContactForm
+              defaultMessage={defaultMessage}
+              defaultSubject={defaultSubject}
+              destinationSlug={destinationSlug ?? undefined}
+              offerSlug={offerSlug ?? undefined}
+            />
 
             <div className="mt-6 pt-6 border-t border-sand-deep">
               <a

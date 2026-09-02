@@ -36,3 +36,71 @@ export function getActiveProviderName(): string {
 export function isUsingMockProvider(): boolean {
   return getFlightProvider().name === "mock";
 }
+
+
+/**
+ * Read-only diagnostic for the admin /billetterie page. Surfaces which
+ * providers are *configured* (env vars present) vs *available* (also known
+ * by the factory) without exposing secret values.
+ *
+ * Extend the `candidates` map when a new provider is added so the admin
+ * panel picks it up automatically.
+ */
+export type ProviderCandidate = {
+  key: string; // value to set FLIGHT_PROVIDER to
+  name: string; // human-readable
+  envVars: string[]; // required/optional env vars that flip "configured"
+  description: string;
+};
+
+export const PROVIDER_CANDIDATES: ProviderCandidate[] = [
+  {
+    key: "mock",
+    name: "Mock (données simulées)",
+    envVars: [],
+    description:
+      "Provider de développement. Toujours disponible. Tarifs et trajets générés localement — ne pas utiliser en production.",
+  },
+  {
+    key: "kiwi",
+    name: "Kiwi.com (Tequila API)",
+    envVars: ["KIWI_API_KEY"],
+    description:
+      "Recherche réelle multi-compagnies. Nécessite un compte Tequila + facturation séparée Kiwi.",
+  },
+];
+
+export type ProviderStatus = {
+  active: {
+    key: string;
+    name: string;
+    configured: boolean;
+  };
+  /** Provider selection comes from FLIGHT_PROVIDER (read from env). */
+  envVar: { name: string; value: string };
+  candidates: Array<ProviderCandidate & { configured: boolean }>;
+};
+
+function readEnvBool(name: string) {
+  const v = (process.env[name] ?? "").trim();
+  return v.length > 0;
+}
+
+export function getProviderStatus(): ProviderStatus {
+  const explicit = (process.env.FLIGHT_PROVIDER ?? "").trim().toLowerCase();
+  const activeName = getFlightProvider().name;
+  return {
+    active: {
+      key: activeName,
+      name:
+        PROVIDER_CANDIDATES.find((c) => c.key === activeName)?.name ?? activeName,
+      configured: activeName !== "mock" || Boolean(explicit === "mock"),
+    },
+    envVar: { name: "FLIGHT_PROVIDER", value: explicit || "(unset → auto)" },
+    candidates: PROVIDER_CANDIDATES.map((c) => ({
+      ...c,
+      configured: c.envVars.every((env) => readEnvBool(env)),
+    })),
+  };
+}
+

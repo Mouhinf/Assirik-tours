@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { saveDestinationAction } from "@/lib/destination-actions";
 import { MediaUploader } from "./media-uploader";
 
@@ -15,9 +16,11 @@ type Initial = {
   gallery: string[];
   published: boolean;
   featured: boolean;
+  homeOrder: number | null;
+  customRegionId: string | null;
 };
 
-const REGIONS = [
+const REGIONS_LEGACY: [string, string][] = [
   ["DAKAR", "Dakar"],
   ["NIAYES", "Niayes (Lac Rose, Lompoul)"],
   ["PETITE_COTE", "Petite-Côte (Saly, Mbour)"],
@@ -31,22 +34,29 @@ const REGIONS = [
   ["AMERIQUE", "Amérique"],
 ];
 
+type RegionOption = { id: string; labelFr: string; legacyEnumKeys: string[] };
+
 export function DestinationForm({
   mode,
   initial,
+  regions,
 }: {
   mode: "create" | "edit";
   initial?: Initial;
+  regions: RegionOption[];
 }) {
   const [heroImageId, setHeroImageId] = useState(initial?.heroImageId ?? "");
   const [gallery, setGallery] = useState<string[]>(initial?.gallery ?? []);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const [customRegionId, setCustomRegionId] = useState(initial?.customRegionId ?? "");
+
   function onSubmit(formData: FormData) {
     setError(null);
     formData.set("heroImageId", heroImageId);
     formData.set("gallery", gallery.join("\n"));
+    formData.set("customRegionId", customRegionId);
 
     startTransition(async () => {
       const res = await saveDestinationAction(formData);
@@ -66,23 +76,54 @@ export function DestinationForm({
         defaultValue={initial?.slug}
       />
 
-      <div>
-        <label className="block">
-          <span className="block text-xs font-semibold uppercase tracking-wider text-graphite mb-1.5">
-            Région
-          </span>
-          <select
-            name="region"
-            defaultValue={initial?.region ?? "DAKAR"}
-            className="w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-sm text-navy focus:border-ocean outline-none"
-          >
-            {REGIONS.map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block">
+            <span className="block text-xs font-semibold uppercase tracking-wider text-graphite mb-1.5">
+              Région (enum legacy)
+            </span>
+            <select
+              name="region"
+              defaultValue={initial?.region ?? "DAKAR"}
+              className="w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-sm text-navy focus:border-ocean outline-none"
+            >
+              {REGIONS_LEGACY.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <span className="block mt-1 text-xs text-silver">
+              Conservé pour la rétro-compatibilité.
+            </span>
+          </label>
+        </div>
+        <div>
+          <label className="block">
+            <span className="block text-xs font-semibold uppercase tracking-wider text-graphite mb-1.5">
+              Région admin-gérée
+            </span>
+            <select
+              value={customRegionId}
+              onChange={(e) => setCustomRegionId(e.target.value)}
+              className="w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-sm text-navy focus:border-ocean outline-none"
+            >
+              <option value="">— Aucune —</option>
+              {regions.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.labelFr}
+                  {r.legacyEnumKeys.length > 0
+                    ? ` ( couvre ${r.legacyEnumKeys.length} enum )`
+                    : ""}
+                </option>
+              ))}
+            </select>
+            <span className="block mt-1 text-xs text-silver">
+              Géré dans <Link href="/admin/destinations/regions" className="underline">Régions</Link>.
+              Laissez vide pour n&apos;utiliser que l&apos;enum.
+            </span>
+          </label>
+        </div>
       </div>
 
       <Field
@@ -176,6 +217,26 @@ export function DestinationForm({
           label="À la une (page d'accueil)"
           defaultChecked={initial?.featured ?? false}
         />
+      </div>
+
+      <div className="max-w-xs">
+        <label className="block">
+          <span className="block text-xs font-semibold uppercase tracking-wider text-graphite mb-1.5">
+            Position sur la page d&apos;accueil
+          </span>
+          <input
+            type="number"
+            name="homeOrder"
+            min={0}
+            step={1}
+            defaultValue={initial?.homeOrder ?? ""}
+            placeholder="Vide = masqué"
+            className="w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 text-sm text-navy focus:border-ocean outline-none"
+          />
+          <span className="block mt-1 text-xs text-silver">
+            1, 2, 3… Trié par ordre croissant. Laissez vide pour ne pas afficher.
+          </span>
+        </label>
       </div>
 
       {error && (

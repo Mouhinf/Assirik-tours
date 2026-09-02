@@ -11,6 +11,7 @@ import {
   type BlockTwoColumnProps,
   type BlockStatsProps,
   type BlockTeamGridProps,
+  type BlockCredentialsGridProps,
   type BlockServiceListProps,
   type BlockImageProps,
   type BlockCtaBannerProps,
@@ -27,6 +28,7 @@ const ALLOWED_TYPES: BlockType[] = [
   "two-column",
   "stats",
   "team-grid",
+  "credentials-grid",
   "service-list",
   "image",
   "cta-banner",
@@ -85,6 +87,34 @@ function checkTeam(v: unknown): BlockTeamGridProps["members"] {
           ? o.bio.slice(0, 500)
           : undefined;
       return { name, role, photoId, bio };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null)
+    .slice(0, 24);
+}
+
+function checkCredentials(
+  v: unknown,
+): BlockCredentialsGridProps["items"] {
+  if (!Array.isArray(v)) return [];
+  return v
+    .map((it) => {
+      if (!it || typeof it !== "object") return null;
+      const o = it as Record<string, unknown>;
+      const name = typeof o.name === "string" ? o.name.slice(0, 80) : "";
+      if (!name) return null;
+      const issuer =
+        typeof o.issuer === "string" && o.issuer.length > 0
+          ? o.issuer.slice(0, 80)
+          : undefined;
+      const description =
+        typeof o.description === "string" && o.description.length > 0
+          ? o.description.slice(0, 280)
+          : undefined;
+      const badgeId =
+        typeof o.badgeId === "string" && o.badgeId.length > 0
+          ? o.badgeId.slice(0, 200)
+          : undefined;
+      return { name, issuer, description, badgeId };
     })
     .filter((x): x is NonNullable<typeof x> => x !== null)
     .slice(0, 24);
@@ -168,6 +198,12 @@ function checkBlock(input: unknown): ValidationResult<unknown> {
       const members = checkTeam(p.members);
       if (members.length === 0) return fail("Ajoutez au moins un membre.");
       const result: BlockTeamGridProps = { members };
+      return { ok: true, data: { type, props: result } };
+    }
+    case "credentials-grid": {
+      const items = checkCredentials(p.items);
+      if (items.length === 0) return fail("Ajoutez au moins un agrément.");
+      const result: BlockCredentialsGridProps = { items };
       return { ok: true, data: { type, props: result } };
     }
     case "service-list": {

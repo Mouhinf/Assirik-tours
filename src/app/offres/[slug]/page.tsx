@@ -6,7 +6,7 @@ import { resolveImage, FALLBACK_BY_SLUG } from "@/lib/photos";
 import { OFFER_KIND_LABELS_FR, REGION_LABELS_FR } from "@/lib/regions";
 import { formatFCFA } from "@/lib/utils";
 import { whatsappLink } from "@/lib/whatsapp";
-import { breadcrumbJsonLd } from "@/lib/seo/jsonld";
+import { breadcrumbJsonLd, offerJsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/seo/jsonld";
 
 type Params = Promise<{ slug: string }>;
 
@@ -117,7 +117,7 @@ export default async function OfferDetailPage({ params }: { params: Params }) {
                   Réserver sur WhatsApp
                 </a>
                 <Link
-                  href={`/contact?offer=${encodeURIComponent(offer.title)}`}
+                  href={`/contact?offer=${encodeURIComponent(offer.slug)}`}
                   className="block w-full text-center rounded-full bg-ocean px-5 py-3 text-sm font-semibold text-sand hover:bg-navy transition-colors"
                 >
                   Demander un devis écrit
@@ -148,6 +148,33 @@ export default async function OfferDetailPage({ params }: { params: Params }) {
         </div>
       </section>
 
+      {/* Vous-y-êtes-allé ? — invitation à laisser un avis */}
+      <section className="container-narrow pb-12">
+        <div className="rounded-xl border border-ocean/20 bg-ocean/5 p-6 flex flex-wrap items-center justify-between gap-4">
+          <p className="text-sm text-graphite">
+            <span className="font-semibold text-navy">Vous avez fait cette offre ?</span>{" "}
+            Votre retour compte pour les prochains voyageurs.
+          </p>
+          <Link
+            href={`/temoignages/nouveau?tripSlug=${encodeURIComponent(offer.slug)}&tripKind=offer`}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-ocean px-5 py-2.5 text-sm font-semibold text-sand transition-colors hover:bg-navy whitespace-nowrap"
+          >
+            Laisser un avis sur cette offre <span aria-hidden>→</span>
+          </Link>
+        </div>
+      </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(offerJsonLd({
+          name: offer.title,
+          description: offer.summary,
+          slug: offer.slug,
+          price: offer.priceFCFA,
+          imageId: offer.coverImageId ?? undefined,
+          destinationTitle: offer.destination.title,
+        })) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd([

@@ -18,7 +18,7 @@ export default async function AdminLoginPage({
     <div className="min-h-screen bg-sand flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
-          <BrandLogo />
+          <BrandLogo variant="mark" />
         </div>
 
         <div className="rounded-2xl border border-sand-deep bg-sand p-8 shadow-soft">

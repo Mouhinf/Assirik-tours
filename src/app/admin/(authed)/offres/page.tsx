@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatFCFA } from "@/lib/utils";
 import { deliveryUrl } from "@/lib/cloudinary-url";
+import { requirePagePermission } from "@/lib/page-permissions";
 
 const KIND_LABELS: Record<string, string> = {
   SEJOUR: "Séjour",
@@ -13,6 +14,7 @@ const KIND_LABELS: Record<string, string> = {
 };
 
 export default async function AdminOffersListPage() {
+  await requirePagePermission("offers:read");
   const [offers, destinations] = await Promise.all([
     prisma.offer.findMany({
       orderBy: { createdAt: "desc" },

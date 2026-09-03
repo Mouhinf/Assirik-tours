@@ -7,10 +7,16 @@ import { formatFCFA } from "@/lib/utils";
 
 type Params = Promise<{ slug: string }>;
 
-export const metadata: Metadata = {
-  title: "Paiement",
-  description: "Réglez votre acompte par carte bancaire (Stripe, mode test).",
-};
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const { slug } = await params;
+  return {
+    title: `Paiement — ${slug}`,
+    description: "Réglez votre acompte par carte bancaire en toute sécurité.",
+    robots: { index: false, follow: false },
+  };
+}
+
+export const dynamic = "force-dynamic";
 
 export default async function PaymentPage({ params }: { params: Params }) {
   const { slug } = await params;
@@ -44,6 +50,16 @@ export default async function PaymentPage({ params }: { params: Params }) {
       {enabled ? (
         <form action="/api/paiement/checkout" method="POST" className="mt-6 space-y-3">
           <input type="hidden" name="offerId" value={offer.id} />
+          {/* Honeypot — hidden from humans, attracts bots. */}
+          <input
+            type="text"
+            name="website_url"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            className="absolute -left-[9999px] w-px h-px opacity-0"
+            defaultValue=""
+          />
           <input
             name="email"
             type="email"
@@ -62,15 +78,28 @@ export default async function PaymentPage({ params }: { params: Params }) {
           </p>
         </form>
       ) : (
-        <div className="mt-6 rounded-xl bg-sand-deep/30 border border-sand-deep p-4">
+        <div className="mt-6 rounded-xl bg-sand-deep/30 border border-sand-deep p-4 space-y-3">
           <p className="text-sm text-graphite leading-relaxed">
-            <strong className="text-navy">Stripe n&apos;est pas encore configuré</strong> sur cet environnement.
-            Pour activer le paiement en ligne, ajoutez <code className="font-mono">STRIPE_SECRET_KEY</code> et{" "}
-            <code className="font-mono">NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</code> dans les variables d&apos;environnement Vercel.
+            <strong className="text-navy">Le paiement en ligne n&apos;est pas encore activé.</strong> Pour réserver cette offre, contactez-nous via WhatsApp ou par téléphone — nous vous confirmerons la disponibilité et les modalités de paiement (virement, Wave, Orange Money, paiement à l&apos;agence).
           </p>
-          <p className="mt-3 text-sm text-graphite">
-            Pour l&apos;instant, vous pouvez régler votre acompte par virement bancaire, en espèces à l&apos;agence, ou via Wave / Orange Money (Phase 2).
-          </p>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={`https://wa.me/221775495314?text=${encodeURIComponent(
+                `Bonjour Assirik Tours, je souhaite réserver l'offre « ${offer.title} ».`,
+              )}`}
+              className="inline-flex items-center rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1ebe5b]"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Réserver sur WhatsApp
+            </Link>
+            <Link
+              href="/contact"
+              className="inline-flex items-center rounded-full bg-navy px-4 py-2 text-sm font-semibold text-white hover:bg-ocean"
+            >
+              Nous contacter
+            </Link>
+          </div>
         </div>
       )}
     </section>

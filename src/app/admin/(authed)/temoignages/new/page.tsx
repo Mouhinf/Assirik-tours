@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { TestimonialForm } from "@/components/admin/testimonial-form";
+import { requirePagePermission } from "@/lib/page-permissions";
 
 export default async function NewTestimonialPage() {
+  await requirePagePermission("testimonials:write");
   const [destRows, offerRows] = await Promise.all([
     prisma.destination.findMany({
       where: { published: true },

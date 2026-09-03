@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { listBlogSlugs, resolveBlogCover } from "@/lib/blog";
 import { BlogPostCard } from "@/components/blog/post-card";
-import { renderBlogBody, readSeoMeta, BLOG_CATEGORY_LABELS_FR } from "@/lib/validators/blog";
+import { renderBlogBody, readSeoMeta, BLOG_CATEGORY_LABELS_FR, BLOG_CATEGORY_LABELS_EN } from "@/lib/validators/blog";
 import { breadcrumbJsonLd } from "@/lib/seo/jsonld";
 import { ShareLinkButton as ShareLink } from "@/components/blog/share-link-button";
 import { BlogPostCta } from "@/components/blog/blog-post-cta";
+import { isLocale, DEFAULT_LOCALE, type Locale } from "@/lib/i18n";
 
 type Params = Promise<{ slug: string }>;
 
@@ -18,12 +20,36 @@ export async function generateStaticParams() {
 
 export const revalidate = 120;
 
-export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const { slug } = await params;
-  const post = await prisma.blogPost.findUnique({
-    where: { slug_locale: { slug, locale: "fr" } },
+async function readLocale(): Promise<Locale> {
+  try {
+    const c = await cookies();
+    const v = c.get("ass_locale")?.value ?? c.get("locale")?.value;
+    return isLocale(v) ? v : DEFAULT_LOCALE;
+  } catch {
+    return DEFAULT_LOCALE;
+  }
+}
+
+async function fetchPost(slug: string, locale: Locale) {
+  const primary = await prisma.blogPost.findUnique({
+    where: { slug_locale: { slug, locale } },
     include: { author: { select: { name: true } } },
   });
+  if (primary && primary.publishedAt) return primary;
+  if (locale !== DEFAULT_LOCALE) {
+    const fallback = await prisma.blogPost.findUnique({
+      where: { slug_locale: { slug, locale: DEFAULT_LOCALE } },
+      include: { author: { select: { name: true } } },
+    });
+    if (fallback && fallback.publishedAt) return fallback;
+  }
+  return null;
+}
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const { slug } = await params;
+  const locale = await readLocale();
+  const post = await fetchPost(slug, locale);
   if (!post || !post.publishedAt) {
     return { title: "Article introuvable" };
   }
@@ -35,7 +61,13 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return {
     title,
     description,
-    alternates: { canonical: `/blog/${slug}` },
+    alternates: {
+      canonical: `/blog/${slug}`,
+      languages: {
+        "fr-FR": `/blog/${slug}`,
+        "en-US": `/blog/${slug}`,
+      },
+    },
     openGraph: {
       title,
       description,
@@ -57,20 +89,19 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function BlogPostPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const post = await prisma.blogPost.findUnique({
-    where: { slug_locale: { slug, locale: "fr" } },
-    include: { author: { select: { name: true } } },
-  });
+  const locale = await readLocale();
+  const post = await fetchPost(slug, locale);
   if (!post || !post.publishedAt) notFound();
 
-  const dateLong = new Date(post.publishedAt).toLocaleDateString("fr-FR", {
+  const dateLocale = locale === "en" ? "en-GB" : "fr-FR";
+  const dateLong = new Date(post.publishedAt).toLocaleDateString(dateLocale, {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
   const updatedLong =
     post.updatedAt.getTime() - post.createdAt.getTime() > 7 * 24 * 3600 * 1000
-      ? new Date(post.updatedAt).toLocaleDateString("fr-FR", {
+      ? new Date(post.updatedAt).toLocaleDateString(dateLocale, {
           day: "numeric",
           month: "long",
           year: "numeric",
@@ -83,7 +114,7 @@ export default async function BlogPostPage({ params }: { params: Params }) {
   const related = await prisma.blogPost.findMany({
     where: {
       id: { not: post.id },
-      locale: "fr",
+      locale: post.locale,
       publishedAt: { not: null },
       OR: post.category
         ? [{ category: post.category }, { tags: { hasSome: post.tags } }]
@@ -94,6 +125,10 @@ export default async function BlogPostPage({ params }: { params: Params }) {
   });
 
   const bodyHtml = renderBlogBody(post.body);
+  const categoryLabels = post.locale === "en" ? BLOG_CATEGORY_LABELS_EN : BLOG_CATEGORY_LABELS_FR;
+  const categoryLabel = post.category
+    ? categoryLabels[post.category as keyof typeof categoryLabels]
+    : null;
 
   return (
     <>
@@ -104,9 +139,9 @@ export default async function BlogPostPage({ params }: { params: Params }) {
               ← Tous les articles
             </Link>
           </p>
-          {post.category && BLOG_CATEGORY_LABELS_FR[post.category as keyof typeof BLOG_CATEGORY_LABELS_FR] ? (
+          {categoryLabel ? (
             <p className="mt-3 text-[0.7rem] font-semibold uppercase tracking-wider text-ocean">
-              {BLOG_CATEGORY_LABELS_FR[post.category as keyof typeof BLOG_CATEGORY_LABELS_FR]}
+              {categoryLabel}
             </p>
           ) : null}
           <h1 className="mt-2 max-w-3xl font-display text-4xl md:text-5xl font-semibold text-navy leading-[1.1] text-balance">
@@ -219,12 +254,8 @@ export default async function BlogPostPage({ params }: { params: Params }) {
               "@id": `/blog/${post.slug}`,
             },
             keywords: post.tags.join(", "),
-            articleSection: post.category
-              ? BLOG_CATEGORY_LABELS_FR[
-                  post.category as keyof typeof BLOG_CATEGORY_LABELS_FR
-                ]
-              : undefined,
-            inLanguage: "fr",
+            articleSection: categoryLabel ?? undefined,
+            inLanguage: post.locale === "en" ? "en-US" : "fr-FR",
             wordCount: post.body.split(/\s+/).length,
           }),
         }}

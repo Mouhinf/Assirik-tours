@@ -1,11 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { requirePermission, requireAdmin } from "@/lib/auth-actions";
+import { can } from "@/lib/rbac";
 
 export default async function AdminClientsPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string; export?: string }>;
 }) {
+  await requireAdmin();
+  const session = await requirePermission("clients:read");
   const sp = await searchParams;
   const q = sp.q?.trim() ?? "";
 
@@ -30,6 +34,8 @@ export default async function AdminClientsPage({
     0,
   );
 
+  const canExport = can(session.role, "clients:export");
+
   return (
     <div className="space-y-6">
       <header className="flex items-end justify-between gap-4">
@@ -37,12 +43,15 @@ export default async function AdminClientsPage({
           <h1 className="font-display text-3xl font-semibold text-navy">Clients (CRM)</h1>
           <p className="mt-1 text-graphite">{clients.length} contact{clients.length > 1 ? "s" : ""} · CA cumulé encaissé : {totalRevenue.toLocaleString("fr-FR")} FCFA</p>
         </div>
-        <Link
-          href={`/admin/clients?export=csv${q ? `&q=${encodeURIComponent(q)}` : ""}`}
-          className="inline-flex items-center gap-2 rounded-full border border-sand-deep px-4 py-2 text-sm font-semibold text-navy hover:border-ocean hover:text-ocean transition-colors"
-        >
-          Exporter en CSV
-        </Link>
+        {canExport ? (
+          <Link
+            href={`/admin/clients/export${q ? `?q=${encodeURIComponent(q)}` : ""}`}
+            className="inline-flex items-center gap-2 rounded-full border border-sand-deep px-4 py-2 text-sm font-semibold text-navy hover:border-ocean hover:text-ocean transition-colors"
+            prefetch={false}
+          >
+            Exporter en CSV
+          </Link>
+        ) : null}
       </header>
 
       <form className="flex gap-2">
@@ -90,42 +99,6 @@ export default async function AdminClientsPage({
           </table>
         )}
       </section>
-
-      {sp.export === "csv" ? (
-        <CsvExport clients={clients.map((c) => ({
-          firstName: c.firstName,
-          lastName: c.lastName,
-          email: c.email,
-          phone: c.phone ?? "",
-          reservations: c.reservations.length,
-          createdAt: c.createdAt.toISOString(),
-        }))} />
-      ) : null}
     </div>
-  );
-}
-
-function CsvExport({ clients }: { clients: Array<Record<string, unknown>> }) {
-  if (typeof window !== "undefined") return null;
-  // Server-side stream — attached as a hidden link generated from the route.
-  return (
-    <CsvDownload clients={clients} />
-  );
-}
-
-// Render the CSV via a tiny route handler in /admin/clients/export/route.ts
-function CsvDownload({ clients }: { clients: Array<Record<string, unknown>> }) {
-  const csv = [
-    "Prénom,Nom,Email,Téléphone,Nb réservations,Créé le",
-    ...clients.map((c) => `${c.firstName},${c.lastName},${c.email},${c.phone},${c.reservations},${String(c.createdAt).slice(0, 10)}`),
-  ].join("\n");
-  return (
-    <a
-      href={`data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`}
-      download={`clients-${new Date().toISOString().slice(0, 10)}.csv`}
-      className="inline-block text-xs text-ocean underline"
-    >
-      Télécharger le CSV ({clients.length} lignes)
-    </a>
   );
 }

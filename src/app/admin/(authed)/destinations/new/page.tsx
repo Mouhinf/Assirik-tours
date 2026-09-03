@@ -1,7 +1,9 @@
 import { DestinationForm } from "@/components/admin/destination-form";
 import { getActiveRegions } from "@/lib/regions";
+import { requirePagePermission } from "@/lib/page-permissions";
 
 export default async function NewDestinationPage() {
+  await requirePagePermission("destinations:write");
   const regions = await getActiveRegions();
   return (
     <div className="space-y-6">

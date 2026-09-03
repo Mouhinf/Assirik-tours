@@ -2,12 +2,14 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { RegionForm } from "@/components/admin/region-form";
+import { requirePagePermission } from "@/lib/page-permissions";
 
 export default async function EditRegionPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requirePagePermission("destinations:write");
   const { id } = await params;
   const region = await prisma.region.findUnique({ where: { id } });
   if (!region) notFound();

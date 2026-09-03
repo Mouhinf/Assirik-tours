@@ -19,13 +19,30 @@ Pas de formulaire perdu, pas de devis automatisé. Un conseiller vous rappelle, 
 
 Nous travaillons en partenariat direct avec les compagnies aériennes (IATA), les consulats (pour la partie visa) et une sélection d'hôtels et de guides locaux — pour pouvoir intervenir vite quand un voyage dérape.`;
 
-const KEY_FIGURES = [
-  { value: "2009", label: "Année de fondation" },
-  { value: "17", label: "Années d'expérience" },
-  { value: "4 800+", label: "Voyageurs accompagnés" },
-  { value: "12", label: "Pays desservis" },
-  { value: "98 %", label: "Voyageurs satisfaits" },
-];
+const FOUNDING_YEAR = 2009;
+const CURRENT_YEAR = new Date().getFullYear();
+
+/**
+ * Key figures shown in the fallback "About" page. The year-derived fields
+ * are computed at render time so the page never goes stale; the marketing
+ * numbers (travelers, countries, satisfaction) live in `SiteSetting` so the
+ * agency can update them from the back-office without touching code.
+ */
+type Figures = {
+  founded: number;
+  yearsExperience: number;
+  travelers: string; // free-form ("4 800+")
+  countries: string; // free-form ("12")
+  satisfaction: string; // free-form ("98 %")
+};
+
+const DEFAULT_FIGURES: Figures = {
+  founded: FOUNDING_YEAR,
+  yearsExperience: CURRENT_YEAR - FOUNDING_YEAR,
+  travelers: "—",
+  countries: "—",
+  satisfaction: "—",
+};
 
 const TEAM = [
   {
@@ -84,21 +101,7 @@ export function AProposFallback({ agencyName, city }: Props) {
 
       {/* Key figures */}
       <section className="container-narrow pb-12">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          {KEY_FIGURES.map((k) => (
-            <div
-              key={k.label}
-              className="rounded-xl border border-sand-deep bg-sand p-5 text-center"
-            >
-              <p className="font-display text-3xl md:text-4xl font-semibold text-navy tabular-nums">
-                {k.value}
-              </p>
-              <p className="mt-2 text-xs uppercase tracking-wider text-graphite">
-                {k.label}
-              </p>
-            </div>
-          ))}
-        </div>
+        <KeyFigures />
       </section>
 
       {/* Story */}
@@ -247,6 +250,54 @@ export function AProposFallback({ agencyName, city }: Props) {
         </div>
       </section>
     </>
+  );
+}
+
+/**
+ * Server component that pulls editable figures from `SiteSetting`. Falls back
+ * to date-derived defaults if the DB row is missing or unset.
+ */
+async function KeyFigures() {
+  const { prisma } = await import("@/lib/prisma");
+  let figures: Figures = DEFAULT_FIGURES;
+  try {
+    const row = await prisma.siteSetting.findUnique({ where: { id: "singleton" } });
+    const data = (row?.data ?? {}) as Partial<Figures>;
+    figures = {
+      founded: FOUNDING_YEAR,
+      yearsExperience: CURRENT_YEAR - FOUNDING_YEAR,
+      travelers: data.travelers || DEFAULT_FIGURES.travelers,
+      countries: data.countries || DEFAULT_FIGURES.countries,
+      satisfaction: data.satisfaction || DEFAULT_FIGURES.satisfaction,
+    };
+  } catch {
+    // Keep defaults.
+  }
+
+  const items: Array<{ value: string; label: string }> = [
+    { value: String(figures.founded), label: "Année de fondation" },
+    { value: String(figures.yearsExperience), label: "Années d'expérience" },
+    { value: figures.travelers, label: "Voyageurs accompagnés" },
+    { value: figures.countries, label: "Pays desservis" },
+    { value: figures.satisfaction, label: "Voyageurs satisfaits" },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      {items.map((k) => (
+        <div
+          key={k.label}
+          className="rounded-xl border border-sand-deep bg-sand p-5 text-center"
+        >
+          <p className="font-display text-3xl md:text-4xl font-semibold text-navy tabular-nums">
+            {k.value}
+          </p>
+          <p className="mt-2 text-xs uppercase tracking-wider text-graphite">
+            {k.label}
+          </p>
+        </div>
+      ))}
+    </div>
   );
 }
 

@@ -5,12 +5,14 @@ import {
   FAQ_CATEGORY_LABELS_FR,
   FAQ_CATEGORY_LABELS_EN,
 } from "@/lib/validators/faq";
+import { requirePagePermission } from "@/lib/page-permissions";
 
 export default async function EditFaqPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requirePagePermission("faq:write");
   const { id } = await params;
   const row = await prisma.faqItem.findUnique({ where: { id } });
   if (!row) notFound();

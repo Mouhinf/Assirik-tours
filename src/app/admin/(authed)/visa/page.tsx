@@ -4,6 +4,7 @@ import { VisaStatusForm } from "@/components/admin/visa-status-form";
 import { VisaCreateCard } from "@/components/admin/visa-create-card";
 import { VisaStatsBar } from "@/components/admin/visa-stats-bar";
 import { VisaFiltersBar } from "@/components/admin/visa-filters-bar";
+import { requirePagePermission } from "@/lib/page-permissions";
 
 const STATUS_LABELS: Record<string, string> = {
   BROUILLON: "Brouillon",
@@ -39,6 +40,7 @@ export default async function AdminVisaPage({
     search?: string;
   }>;
 }) {
+  await requirePagePermission("visa:read");
   const sp = await searchParams;
   const filterStatus = typeof sp.status === "string" && STATUS_LABELS[sp.status] ? sp.status : null;
   const search = typeof sp.search === "string" ? sp.search.trim().toLowerCase() : "";

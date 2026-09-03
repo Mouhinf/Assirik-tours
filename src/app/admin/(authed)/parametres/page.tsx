@@ -5,11 +5,12 @@ import { SiteSettingsForm } from "@/components/admin/site-settings-form";
 import { ROLE_LABELS_FR, type AdminRole } from "@/lib/rbac";
 import { getSiteSettings } from "@/lib/site-settings";
 import { getSession } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { requirePagePermission } from "@/lib/page-permissions";
 
 export default async function AdminSettingsPage() {
+  await requirePagePermission("settings:read");
   const session = await getSession();
-  if (!session) redirect("/admin/login");
+  if (!session) return null;
 
   const adminUser = await prisma.adminUser.findUnique({
     where: { id: session.sub },

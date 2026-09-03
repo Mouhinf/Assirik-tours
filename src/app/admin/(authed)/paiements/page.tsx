@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { formatFCFA } from "@/lib/utils";
+import { requirePagePermission } from "@/lib/page-permissions";
 
 export default async function AdminPaymentsPage() {
+  await requirePagePermission("payments:read");
   const reservations = await prisma.reservation.findMany({
     where: { totalFCFA: { gt: 0 } },
     include: { client: true, offer: { include: { destination: true } } },

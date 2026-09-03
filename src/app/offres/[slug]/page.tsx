@@ -110,7 +110,7 @@ export default async function OfferDetailPage({ params }: { params: Params }) {
 
               <div className="mt-6 space-y-2">
                 <a
-                  href={whatsappLink(`Bonjour Assirik Tours, je suis intéressé(e) par l'offre "${offer.title}" (${formatFCFA(offer.priceFCFA)}). Pouvez-vous de vous m'en dire plus ?`)}
+                  href={whatsappLink(`Bonjour Assirik Tours, je suis intéressé(e) par l'offre "${offer.title}" (${formatFCFA(offer.priceFCFA)}). Pouvez-vous m'en dire plus ?`)}
                   target="_blank" rel="noopener noreferrer"
                   className="block w-full text-center rounded-full bg-whatsapp px-5 py-3 text-sm font-semibold text-sand hover:bg-whatsapp-hover transition-colors"
                 >

@@ -56,13 +56,11 @@ export const organizationJsonLd = {
     availableLanguage: ["French", "English"],
     areaServed: ["SN", "FR", "BE", "CH", "US", "CA"],
   },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.8",
-    reviewCount: "127",
-    bestRating: "5",
-    worstRating: "1",
-  },
+  // NOTE: aggregateRating is intentionally NOT declared on the static
+  // organization document. It is added at runtime by buildReviewsJsonLd(),
+  // computed from real approved Testimonial rows. Hard-coded values would
+  // violate Google structured-data policy (fake reviews) and risk a manual
+  // action against the site.
 };
 
 export const websiteJsonLd = {
@@ -225,16 +223,9 @@ export function offerJsonLd(opts: {
       url: `${SITE_URL}/offres/${opts.slug}`,
       seller: { "@id": `${SITE_URL}/#organization` },
     },
-    aggregateRating:
-      opts.availability === "https://schema.org/SoldOut"
-        ? undefined
-        : {
-            "@type": "AggregateRating",
-            ratingValue: "4.8",
-            reviewCount: "127",
-            bestRating: "5",
-            worstRating: "1",
-          },
+    // aggregateRating intentionally omitted — Google penalizes aggregateRating
+    // attached to individual Products when there are no real Product reviews.
+    // TravelAgency-wide rating lives in buildReviewsJsonLd().
     ...(opts.destinationTitle
       ? { category: `Voyage — ${opts.destinationTitle}` }
       : {}),

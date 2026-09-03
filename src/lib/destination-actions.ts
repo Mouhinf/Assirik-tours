@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth-actions";
+import { requirePermission } from "@/lib/auth-actions";
 import { deleteAsset } from "@/lib/cloudinary";
+import { recordAudit } from "@/lib/audit";
 
 /* ─── Helpers ─────────────────────────────────────────────────── */
 
@@ -39,7 +40,7 @@ function toStringArray(v: FormDataEntryValue | null): string[] {
 /* ─── Create / update ─────────────────────────────────────────── */
 
 export async function saveDestinationAction(formData: FormData) {
-  await requireAdmin();
+  const session = await requirePermission("destinations:write");
 
   const id = String(formData.get("id") ?? "");
   const title = String(formData.get("title") ?? "").trim();
@@ -93,8 +94,20 @@ export async function saveDestinationAction(formData: FormData) {
 
   if (id) {
     await prisma.destination.update({ where: { id }, data });
+    await recordAudit({
+      userId: session.sub,
+      action: "destination.update",
+      entity: `destination:${id}`,
+      metadata: { title, slug, published, featured },
+    });
   } else {
-    await prisma.destination.create({ data });
+    const created = await prisma.destination.create({ data });
+    await recordAudit({
+      userId: session.sub,
+      action: "destination.create",
+      entity: `destination:${created.id}`,
+      metadata: { title, slug, published, featured },
+    });
   }
 
   revalidatePath("/admin/destinations");
@@ -104,7 +117,7 @@ export async function saveDestinationAction(formData: FormData) {
 }
 
 export async function deleteDestinationAction(formData: FormData) {
-  await requireAdmin();
+  const session = await requirePermission("destinations:delete");
   const id = String(formData.get("id") ?? "");
   if (!id) return { error: "ID manquant." };
 
@@ -138,7 +151,16 @@ export async function deleteDestinationAction(formData: FormData) {
     ),
   );
 
+  await recordAudit({
+    userId: session.sub,
+    action: "destination.delete",
+    entity: `destination:${id}`,
+    metadata: { title: dest.title, slug: dest.slug, deletedOffers: orphanedOffers.length },
+  });
+
   revalidatePath("/admin/destinations");
   revalidatePath("/destinations");
+  revalidatePath("/offres");
+  revalidatePath("/");
   redirect("/admin/destinations");
 }

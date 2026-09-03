@@ -3,12 +3,14 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getActiveRegions } from "@/lib/regions";
 import { DestinationForm } from "@/components/admin/destination-form";
+import { requirePagePermission } from "@/lib/page-permissions";
 
 export default async function EditDestinationPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requirePagePermission("destinations:write");
   const { id } = await params;
   const [dest, regions] = await Promise.all([
     prisma.destination.findUnique({

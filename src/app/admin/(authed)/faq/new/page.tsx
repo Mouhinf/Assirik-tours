@@ -1,6 +1,8 @@
 import { FaqForm } from "@/components/admin/faq-form";
+import { requirePagePermission } from "@/lib/page-permissions";
 
-export default function NewFaqPage() {
+export default async function NewFaqPage() {
+  await requirePagePermission("faq:write");
   return (
     <div className="space-y-6 max-w-5xl">
       <header>

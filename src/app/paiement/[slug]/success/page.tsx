@@ -3,10 +3,29 @@ import { ReservationSource } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { createReservationReference } from "@/lib/reservation-reference";
+import { recordAudit } from "@/lib/audit";
 
 type Params = Promise<{ slug: string }>;
 type SP = Promise<{ session_id?: string }>;
 
+export const dynamic = "force-dynamic";
+export const metadata = { robots: { index: false, follow: false } };
+
+/**
+ * /paiement/<slug>/success?session_id=...
+ *
+ * This page is reached by Stripe after a successful Checkout. The actual
+ * reservation is created by the webhook handler — see
+ * `src/app/api/paiement/webhook/route.ts`. We still verify the session here
+ * for two reasons:
+ *  - tell the user whether the payment was confirmed;
+ *  - if Stripe was reached but the webhook hasn't fired yet (a rare race),
+ *    we create the reservation from this page so the user doesn't see a
+ *    "payment pending" message while the money is already taken.
+ *
+ * Dedupe is keyed on the Stripe session id stored in `tags`, so reloading
+ * the page can never create a duplicate reservation.
+ */
 export default async function PaymentSuccessPage({ params, searchParams }: { params: Params; searchParams: SP }) {
   const { slug } = await params;
   const sp = await searchParams;
@@ -20,28 +39,22 @@ export default async function PaymentSuccessPage({ params, searchParams }: { par
         const session = await stripe.checkout.sessions.retrieve(sessionId);
         paymentOk = session.payment_status === "paid";
         if (paymentOk) {
-          // Persist as a reservation if not already
           const offer = await prisma.offer.findUnique({ where: { slug }, include: { destination: true } });
           if (offer) {
             const email = session.customer_email ?? session.metadata?.clientEmail;
             if (email) {
-              const client = await prisma.client.upsert({
-                where: { email },
-                create: {
-                  firstName: "—",
-                  lastName: "—",
-                  email,
-                  phone: "",
-                },
-                update: {},
-              });
               const stripeTag = `stripe:${session.id}`;
               const existing = await prisma.reservation.findFirst({
                 where: { tags: { has: stripeTag } },
                 select: { id: true },
               });
               if (!existing) {
-                await prisma.reservation.create({
+                const client = await prisma.client.upsert({
+                  where: { email },
+                  create: { firstName: "—", lastName: "—", email, phone: "" },
+                  update: {},
+                });
+                const reservation = await prisma.reservation.create({
                   data: {
                     reference: createReservationReference(),
                     clientId: client.id,
@@ -56,6 +69,11 @@ export default async function PaymentSuccessPage({ params, searchParams }: { par
                     tags: ["Offre", "Paiement", stripeTag],
                     notes: `Stripe session ${session.id}`,
                   },
+                });
+                await recordAudit({
+                  action: "payment.received.success_page",
+                  entity: `reservation:${reservation.id}`,
+                  metadata: { stripeSessionId: session.id, offerSlug: slug },
                 });
               }
             }

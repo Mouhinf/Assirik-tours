@@ -8,6 +8,15 @@ import {
   createAnonymousClientEmail,
   createReservationReference,
 } from "@/lib/reservation-reference";
+import { recordAudit } from "@/lib/audit";
+import {
+  checkHoneypot,
+  EMAIL_RE,
+  isPlausibleInput,
+  isValidPhone,
+  formRateLimit,
+  sanitizePlainText,
+} from "@/lib/validators/public-forms";
 
 export type OfferDevisState =
   | { ok: true; reference: string }
@@ -30,24 +39,22 @@ function dateOrNull(v: FormDataEntryValue | null): Date | null {
   return isNaN(d.getTime()) ? null : d;
 }
 
-/**
- * Creates a Reservation linked to a published offer.
- *
- * Pre-fills:
- * - offerId, destination (via relation)
- * - travelers (from form)
- * - startDate (from form, fallback to offer.startDate)
- * - totalFCFA (0 — finalized by the agent after manual quote)
- * - notes (offer + form message)
- *
- * Always succeeds → redirects to /offres/[slug]/devis/merci?ref=...
- */
 export async function submitOfferDevisAction(
   _prev: OfferDevisState,
   formData: FormData,
 ): Promise<OfferDevisState> {
+  if (checkHoneypot(formData)) {
+    // Bot — discard and pretend success.
+    const fakeRef = "AT-DISCARDED";
+    redirect(`/offres/${str(formData.get("offerSlug"))}/devis/merci?ref=${encodeURIComponent(fakeRef)}`);
+  }
+
   const offerSlug = str(formData.get("offerSlug"));
   if (!offerSlug) return { ok: false, error: "Offre inconnue." };
+
+  const rateKey = `offer-devis|${offerSlug}|${str(formData.get("email")).toLowerCase()}`;
+  const limited = formRateLimit(rateKey);
+  if (!limited.ok) return { ok: false, error: limited.error };
 
   const offer = await prisma.offer.findUnique({
     where: { slug: offerSlug },
@@ -64,13 +71,13 @@ export async function submitOfferDevisAction(
     return { ok: false, error: "Cette offre n'est pas disponible." };
   }
 
-  const firstName = str(formData.get("firstName"));
-  const lastName = str(formData.get("lastName"));
+  const firstName = sanitizePlainText(str(formData.get("firstName")));
+  const lastName = sanitizePlainText(str(formData.get("lastName")));
   const email = str(formData.get("email")).toLowerCase();
   const phone = str(formData.get("phone"));
   const travelers = toIntOrZero(formData.get("travelers"));
   const startDate = dateOrNull(formData.get("startDate")) ?? offer.startDate;
-  const message = str(formData.get("message"));
+  const message = sanitizePlainText(str(formData.get("message")));
 
   if (!firstName || !lastName) {
     return { ok: false, error: "Nom et prénom sont requis." };
@@ -80,6 +87,15 @@ export async function submitOfferDevisAction(
   }
   if (!message) {
     return { ok: false, error: "Décrivez votre projet en quelques mots." };
+  }
+  if (!isPlausibleInput(message, 4000)) {
+    return { ok: false, error: "Message trop long ou caractères invalides." };
+  }
+  if (email && !EMAIL_RE.test(email)) {
+    return { ok: false, error: "Adresse email invalide." };
+  }
+  if (phone && !isValidPhone(phone)) {
+    return { ok: false, error: "Numéro de téléphone invalide." };
   }
 
   const reference = createReservationReference();
@@ -119,6 +135,11 @@ export async function submitOfferDevisAction(
       },
       select: { id: true, reference: true },
     });
+  });
+
+  await recordAudit({
+    action: "public.offer.devis.submit",
+    metadata: { reference, offerSlug, hasEmail: Boolean(email) },
   });
 
   await notifyNewRequest({

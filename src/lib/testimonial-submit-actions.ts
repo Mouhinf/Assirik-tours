@@ -8,6 +8,11 @@ import {
   toTestimonialData,
   type TestimonialLocale,
 } from "@/lib/validators/testimonial";
+import {
+  checkHoneypot,
+  formRateLimit,
+} from "@/lib/validators/public-forms";
+import { recordAudit } from "@/lib/audit";
 
 /**
  * Server action for the PUBLIC testimonial submission form (no auth).
@@ -33,6 +38,17 @@ export async function submitTestimonialAction(
   _prev: SubmitTestimonialState,
   formData: FormData,
 ): Promise<SubmitTestimonialState> {
+  if (checkHoneypot(formData)) {
+    return { ok: true, reference: "AT-AVIS-DISCARDED" };
+  }
+
+  const limited = formRateLimit(`testimonial|${String(formData.get("email") ?? "").toLowerCase()}`, {
+    windowMs: 5 * 60 * 1000,
+    max: 1,
+    lockMs: 5 * 60 * 1000,
+  });
+  if (!limited.ok) return { ok: false, error: limited.error };
+
   // Locale is taken from the i18n cookie, NOT from the form — protects
   // against attackers posting the form in a non-public locale.
   const cookieStore = await cookies();
@@ -69,6 +85,11 @@ export async function submitTestimonialAction(
 
   const reference = makeReference();
   void created; // we don't expose the id publicly — only the reference
+
+  await recordAudit({
+    action: "public.testimonial.submit",
+    metadata: { reference, locale },
+  });
 
   revalidatePath("/admin/temoignages");
   revalidatePath("/temoignages");

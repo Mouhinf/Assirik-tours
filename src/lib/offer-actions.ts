@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth-actions";
+import { requirePermission } from "@/lib/auth-actions";
+import { recordAudit } from "@/lib/audit";
 
 function toIntOrNull(v: FormDataEntryValue | null) {
   if (v == null || v === "") return null;
@@ -36,7 +37,7 @@ function slugify(input: string) {
 }
 
 export async function saveOfferAction(formData: FormData) {
-  await requireAdmin();
+  const session = await requirePermission("offers:write");
 
   const id = String(formData.get("id") ?? "");
   const title = String(formData.get("title") ?? "").trim();
@@ -101,8 +102,20 @@ export async function saveOfferAction(formData: FormData) {
 
   if (id) {
     await prisma.offer.update({ where: { id }, data });
+    await recordAudit({
+      userId: session.sub,
+      action: "offer.update",
+      entity: `offer:${id}`,
+      metadata: { title, slug, priceFCFA, published },
+    });
   } else {
-    await prisma.offer.create({ data });
+    const created = await prisma.offer.create({ data });
+    await recordAudit({
+      userId: session.sub,
+      action: "offer.create",
+      entity: `offer:${created.id}`,
+      metadata: { title, slug, priceFCFA, published },
+    });
   }
 
   revalidatePath("/admin/offres");
@@ -112,14 +125,23 @@ export async function saveOfferAction(formData: FormData) {
 }
 
 export async function deleteOfferAction(formData: FormData) {
-  await requireAdmin();
+  const session = await requirePermission("offers:delete");
   const id = String(formData.get("id") ?? "");
   if (!id) return { error: "ID manquant." };
+  const offer = await prisma.offer.findUnique({ where: { id }, select: { title: true, slug: true } });
   await prisma.reservation.updateMany({
     where: { offerId: id },
     data: { offerId: null },
   });
   await prisma.offer.delete({ where: { id } });
+  await recordAudit({
+    userId: session.sub,
+    action: "offer.delete",
+    entity: `offer:${id}`,
+    metadata: { title: offer?.title, slug: offer?.slug },
+  });
   revalidatePath("/admin/offres");
+  revalidatePath("/offres");
+  revalidatePath("/");
   redirect("/admin/offres");
 }

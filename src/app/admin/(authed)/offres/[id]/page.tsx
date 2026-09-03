@@ -1,12 +1,14 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { OfferForm } from "@/components/admin/offer-form";
+import { requirePagePermission } from "@/lib/page-permissions";
 
 export default async function EditOfferPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requirePagePermission("offers:write");
   const { id } = await params;
   const [offer, destinations] = await Promise.all([
     prisma.offer.findUnique({ where: { id } }),

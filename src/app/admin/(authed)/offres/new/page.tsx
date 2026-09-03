@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { OfferForm } from "@/components/admin/offer-form";
+import { requirePagePermission } from "@/lib/page-permissions";
 
 export default async function NewOfferPage() {
+  await requirePagePermission("offers:write");
   const destinations = await prisma.destination.findMany({
     where: { published: true },
     select: { id: true, title: true },

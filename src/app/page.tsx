@@ -12,10 +12,13 @@ import { getLocaleCookie } from "@/lib/i18n-actions";
 import { isLocale, DEFAULT_LOCALE } from "@/lib/i18n";
 import { buildReviewsJsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/seo/jsonld";
 
+const FOUNDING_YEAR = 2009;
+const YEARS_EXPERIENCE = new Date().getFullYear() - FOUNDING_YEAR;
+
 const trustPoints = [
   {
     title: "Une expertise de terrain",
-    body: "Plus de 15 ans à organiser des voyages depuis Dakar — nous parlons la langue du pays et de ses réalités administratives.",
+    body: `${YEARS_EXPERIENCE} ans à organiser des voyages depuis Dakar — nous parlons la langue du pays et de ses réalités administratives.`,
   },
   {
     title: "Un interlocuteur unique",

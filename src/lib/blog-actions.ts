@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin, requirePermission } from "@/lib/auth-actions";
+import { requirePermission } from "@/lib/auth-actions";
 import { recordAudit } from "@/lib/audit";
 import {
   parseBlogForm,
@@ -235,7 +235,7 @@ export async function duplicateBlogPostAction(formData: FormData) {
 export async function createBlogPost(
   input: BlogInput & { authorId: string; publishedAt?: Date | null; isFeatured?: boolean },
 ): Promise<{ ok: true; id: string } | { error: string }> {
-  const session = await requireAdmin();
+  const session = await requirePermission("blog:write");
   const uniqueSlug = await ensureUniqueSlug(input.slug, input.locale);
   const created = await prisma.blogPost.create({
     data: {

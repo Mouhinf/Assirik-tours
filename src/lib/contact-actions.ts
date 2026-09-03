@@ -7,21 +7,26 @@ import {
   createAnonymousClientEmail,
   createReservationReference,
 } from "@/lib/reservation-reference";
+import { recordAudit } from "@/lib/audit";
+import {
+  checkHoneypot,
+  EMAIL_RE,
+  isPlausibleInput,
+  isValidPhone,
+  formRateLimit,
+  sanitizePlainText,
+} from "@/lib/validators/public-forms";
 
 /**
  * Public contact form — same backing store as the offer and flight quote
  * flows (`Reservation` table with `source = CONTACT`).
  *
- * Idempotency: if the same email + same first 80 chars of the message
- * were submitted within the last 60 seconds, we short-circuit and return
- * the existing reservation reference. This protects against the
- * double-click race and against trivial spam, without being so strict
- * that a legitimate follow-up gets blocked.
- *
- * The contact action is intentionally the same shape as the others:
- *   - upsert Client by email (or create a `no-email-...` placeholder)
- *   - create a `Reservation` row with the canonical schema
- *   - dispatch a templated agency notification and persist its result
+ * Spam protection:
+ *  - Hidden honeypot field (`website_url`) — bots fill it, humans don't.
+ *  - Per-(IP+email) rate limit (10 min window, 5 attempts, 30 min lockout).
+ *  - Server-side email + phone format validation.
+ *  - HTML stripped from free-text fields before persisting.
+ *  - Idempotency dedup by email + message fingerprint (60s).
  */
 
 export type ContactFormState =
@@ -39,14 +44,19 @@ export async function submitContactAction(
   _prev: ContactFormState,
   formData: FormData,
 ): Promise<ContactFormState> {
-  const firstName = str(formData.get("firstName"));
-  const lastName = str(formData.get("lastName"));
+  if (checkHoneypot(formData)) {
+    // Silent success — don't tip off the bot.
+    return { ok: true, reference: "AT-DISCARDED" };
+  }
+
+  const firstName = sanitizePlainText(str(formData.get("firstName")));
+  const lastName = sanitizePlainText(str(formData.get("lastName")));
   const email = str(formData.get("email")).toLowerCase();
   const phone = str(formData.get("phone"));
   const subject = str(formData.get("subject")).slice(0, 160) || null;
   const destinationSlug = str(formData.get("destinationSlug")) || null;
   const offerSlug = str(formData.get("offerSlug")) || null;
-  const message = str(formData.get("message"));
+  const message = sanitizePlainText(str(formData.get("message")));
 
   if (!firstName || !lastName || !message) {
     return { ok: false, error: "Nom, prénom et message requis." };
@@ -54,12 +64,21 @@ export async function submitContactAction(
   if (!email && !phone) {
     return { ok: false, error: "Email ou téléphone requis pour vous recontacter." };
   }
+  if (!isPlausibleInput(message, 4000)) {
+    return { ok: false, error: "Message trop long ou caractères invalides." };
+  }
+  if (email && !EMAIL_RE.test(email)) {
+    return { ok: false, error: "Adresse email invalide." };
+  }
+  if (phone && !isValidPhone(phone)) {
+    return { ok: false, error: "Numéro de téléphone invalide." };
+  }
 
-  // Optional deep-link context: when /contact?destination=<slug> or
-  // /contact?offer=<slug> is used, we route the lead to the right
-  // destination/offer in the admin instead of treating it as a generic
-  // contact form submission. Both are looked up defensively (no crash
-  // if the slug was deleted since the link was generated).
+  const rateKey = `contact|${email || phone}|${formData.get("_ip") ?? ""}`;
+  const limited = formRateLimit(rateKey);
+  if (!limited.ok) return { ok: false, error: limited.error };
+
+  // Optional deep-link context
   const [{ destination }, { offer }] = await Promise.all([
     destinationSlug
       ? prisma.destination.findUnique({ where: { slug: destinationSlug }, select: { id: true, title: true } }).then((d) => ({ destination: d }))
@@ -111,8 +130,6 @@ export async function submitContactAction(
 
   const reference = createReservationReference();
   const reservation = await prisma.$transaction(async (tx) => {
-    // Keep client creation and request creation atomic: a successful public
-    // response can never leave an orphan Client without its unified request.
     const client = email
       ? await tx.client.upsert({
           where: { email },
@@ -146,6 +163,11 @@ export async function submitContactAction(
       },
       select: { id: true, reference: true },
     });
+  });
+
+  await recordAudit({
+    action: "public.contact.submit",
+    metadata: { reference, source, hasEmail: Boolean(email) },
   });
 
   await notifyNewRequest({

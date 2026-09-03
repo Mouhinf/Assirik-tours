@@ -2,14 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth-actions";
+import { requirePermission } from "@/lib/auth-actions";
 import { uploadBuffer, deleteAsset } from "@/lib/cloudinary";
+import { recordAudit } from "@/lib/audit";
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
 
 export async function uploadImageAction(formData: FormData) {
-  await requireAdmin();
+  const session = await requirePermission("media:write");
 
   const file = formData.get("file");
   const folder = String(formData.get("folder") ?? "assirik-tours/general");
@@ -29,6 +30,11 @@ export async function uploadImageAction(formData: FormData) {
 
   try {
     const result = await uploadBuffer(buffer, { folder: safeFolder });
+    await recordAudit({
+      userId: session.sub,
+      action: "media.upload",
+      metadata: { publicId: result.publicId, folder: safeFolder, bytes: result.bytes },
+    });
     revalidatePath("/admin/media");
     return {
       ok: true,
@@ -49,12 +55,17 @@ export async function uploadImageAction(formData: FormData) {
 }
 
 export async function deleteImageAction(formData: FormData) {
-  await requireAdmin();
+  const session = await requirePermission("media:delete");
   const publicId = String(formData.get("publicId") ?? "");
   if (!publicId) return { error: "Public ID manquant." };
 
   try {
     await deleteAsset(publicId);
+    await recordAudit({
+      userId: session.sub,
+      action: "media.delete",
+      metadata: { publicId },
+    });
     revalidatePath("/admin/media");
     return { ok: true };
   } catch (e) {
@@ -67,6 +78,9 @@ export async function deleteImageAction(formData: FormData) {
 export async function listRecentMedia(folder?: string) {
   // The dashboard needs to call Cloudinary's admin API. We do that server-side
   // to avoid leaking the API secret to the client.
+  const { requirePermission } = await import("@/lib/auth-actions");
+  await requirePermission("media:read");
+
   const cloudinary = (await import("cloudinary")).v2;
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;

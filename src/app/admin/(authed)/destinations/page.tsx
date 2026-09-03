@@ -2,8 +2,10 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { deliveryUrl } from "@/lib/cloudinary-url";
 import { REGION_LABELS_FR } from "@/lib/regions";
+import { requirePagePermission } from "@/lib/page-permissions";
 
 export default async function AdminDestinationsListPage() {
+  await requirePagePermission("destinations:read");
   const destinations = await prisma.destination.findMany({
     orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
     include: {

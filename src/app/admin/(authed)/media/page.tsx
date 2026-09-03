@@ -1,7 +1,9 @@
 import { listRecentMedia } from "@/lib/media-actions";
 import { MediaUploader, MediaGallery } from "@/components/admin/media-uploader";
+import { requirePagePermission } from "@/lib/page-permissions";
 
 export default async function AdminMediaPage() {
+  await requirePagePermission("media:read");
   const { assets, configured } = await listRecentMedia();
 
   return (

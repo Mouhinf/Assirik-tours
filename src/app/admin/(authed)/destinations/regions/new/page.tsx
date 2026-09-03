@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { RegionForm } from "@/components/admin/region-form";
+import { requirePagePermission } from "@/lib/page-permissions";
 
-export default function NewRegionPage() {
+export default async function NewRegionPage() {
+  await requirePagePermission("destinations:write");
   return (
     <div className="space-y-6">
       <header>

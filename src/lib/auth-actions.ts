@@ -14,6 +14,12 @@ import {
 import { generateSecret, verifyTotp, buildOtpAuthUrl } from "@/lib/totp";
 import { recordAudit } from "@/lib/audit";
 import { requireRole } from "@/lib/rbac";
+import {
+  checkLoginRate,
+  resetLoginRate,
+  timingSafeComparePassword,
+  getRequestIp,
+} from "@/lib/auth";
 
 /* ─── Login / 2FA / logout ─────────────────────────────────── */
 
@@ -32,25 +38,35 @@ export async function loginAction(
   const password = String(formData.get("password") ?? "");
   const token = String(formData.get("token") ?? "");
   const redirectTo = String(formData.get("redirect") ?? "/admin");
+  const ip = await getRequestIp();
+
+  const rateLimited = checkLoginRate(email, ip);
+  if (rateLimited) {
+    return { stage: "credentials", error: rateLimited };
+  }
 
   const user = await prisma.adminUser.findUnique({ where: { email } });
-  if (!user) {
-    await recordAudit({ action: "auth.failed", metadata: { email, reason: "no-user" } });
+  // Constant-time password check whether or not the user exists.
+  const ok = await timingSafeComparePassword(password, user?.passwordHash);
+  if (!user || !ok) {
+    await recordAudit({
+      action: "auth.failed",
+      metadata: { email, reason: user ? "bad-password" : "no-user", ip },
+    });
     return { stage: "credentials", error: "Identifiants incorrects." };
   }
-  const ok = await verifyPassword(password, user.passwordHash);
-  if (!ok) {
-    await recordAudit({ action: "auth.failed", metadata: { email, reason: "bad-password" } });
-    return { stage: "credentials", error: "Identifiants incorrects." };
-  }
+  resetLoginRate(email, ip);
 
-  // 2FA flow — only enforced for super-admins who enabled it.
-  if (user.twoFactorEnabled) {
+  // 2FA flow — mandatory for SUPER_ADMIN, optional for others.
+  if (user.twoFactorEnabled || user.role === "SUPER_ADMIN") {
     if (!token) {
       // First step — stash a short-lived pending cookie and prompt for the code.
       const store = await cookies();
       store.set(PENDING_2FA_COOKIE, user.id, {
-        path: "/", httpOnly: true, sameSite: "lax",
+        path: "/",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
         maxAge: 5 * 60,
       });
       return { stage: "twofactor", userId: user.id };
@@ -62,7 +78,14 @@ export async function loginAction(
     }
 
     const secret = await prisma.twoFactorCode.findUnique({ where: { userId: user.id } });
-    if (!secret) {
+    if (!secret || !secret.confirmed) {
+      // For SUPER_ADMIN, 2FA must be configured — block login until it is.
+      if (user.role === "SUPER_ADMIN") {
+        return {
+          stage: "credentials",
+          error: "Le 2FA est obligatoire pour les super-admins. Contactez un autre super-admin pour le configurer.",
+        };
+      }
       user.twoFactorEnabled = false;
       await prisma.adminUser.update({
         where: { id: user.id },

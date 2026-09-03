@@ -57,41 +57,32 @@ export async function loginAction(
   }
   resetLoginRate(email, ip);
 
-  // 2FA flow — mandatory for SUPER_ADMIN, optional for others.
-  if (user.twoFactorEnabled || user.role === "SUPER_ADMIN") {
-    if (!token) {
-      // First step — stash a short-lived pending cookie and prompt for the code.
-      const store = await cookies();
-      store.set(PENDING_2FA_COOKIE, user.id, {
-        path: "/",
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 5 * 60,
-      });
-      return { stage: "twofactor", userId: user.id };
-    }
-
-    const pending = await getPending2FAUserId();
-    if (pending !== user.id) {
-      return { stage: "credentials", error: "Session 2FA expirée. Reconnectez-vous." };
-    }
-
+  // 2FA flow — only triggered when the user has explicitly enabled 2FA
+  // (a confirmed TOTP secret exists). Role alone does not require 2FA:
+  // we tried that and it kept admins locked out of a freshly-installed
+  // site with no TOTP configured. Use `/admin/parametres` to enroll
+  // optional 2FA after first login.
+  if (user.twoFactorEnabled) {
     const secret = await prisma.twoFactorCode.findUnique({ where: { userId: user.id } });
-    if (!secret || !secret.confirmed) {
-      // For SUPER_ADMIN, 2FA must be configured — block login until it is.
-      if (user.role === "SUPER_ADMIN") {
-        return {
-          stage: "credentials",
-          error: "Le 2FA est obligatoire pour les super-admins. Contactez un autre super-admin pour le configurer.",
-        };
+    if (secret?.confirmed) {
+      if (!token) {
+        // First step — stash a short-lived pending cookie and prompt for the code.
+        const store = await cookies();
+        store.set(PENDING_2FA_COOKIE, user.id, {
+          path: "/",
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: 5 * 60,
+        });
+        return { stage: "twofactor", userId: user.id };
       }
-      user.twoFactorEnabled = false;
-      await prisma.adminUser.update({
-        where: { id: user.id },
-        data: { twoFactorEnabled: false },
-      });
-    } else {
+
+      const pending = await getPending2FAUserId();
+      if (pending !== user.id) {
+        return { stage: "credentials", error: "Session 2FA expirée. Reconnectez-vous." };
+      }
+
       const valid = await verifyTotp({ secret: secret.secret, token });
       if (!valid) {
         await recordAudit({ action: "auth.failed", metadata: { email, reason: "bad-2fa" } });
@@ -101,9 +92,16 @@ export async function loginAction(
         where: { userId: user.id },
         data: { lastUsed: new Date() },
       });
+      const c = await cookies();
+      c.delete(PENDING_2FA_COOKIE);
+    } else {
+      // Stale flag — no confirmed secret. Treat as 2FA-disabled.
+      await prisma.adminUser.update({
+        where: { id: user.id },
+        data: { twoFactorEnabled: false },
+      });
+      user.twoFactorEnabled = false;
     }
-    const c = await cookies();
-    c.delete(PENDING_2FA_COOKIE);
   }
 
   await prisma.adminUser.update({

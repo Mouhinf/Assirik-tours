@@ -5,12 +5,18 @@ let configured = false;
 
 function configure() {
   if (configured) return;
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  // Accept either CLOUDINARY_CLOUD_NAME (server-only var) or
+  // NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME (public var, also available on the
+  // edge). Falling back to the public one keeps the SDK configured in
+  // environments where only NEXT_PUBLIC_* is set.
+  const cloudName =
+    process.env.CLOUDINARY_CLOUD_NAME ||
+    process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
   if (!cloudName || !apiKey || !apiSecret) {
     throw new Error(
-      "Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET in .env.local.",
+      "Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME (or NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME), CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET.",
     );
   }
   cloudinary.config({

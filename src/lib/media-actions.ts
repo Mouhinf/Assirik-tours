@@ -84,7 +84,9 @@ export async function listRecentMedia(folder?: string) {
   const cloudinary = (await import("cloudinary")).v2;
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const cloudName =
+    process.env.CLOUDINARY_CLOUD_NAME ||
+    process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
   if (!apiKey || !apiSecret || !cloudName) {
     return { assets: [], configured: false };
   }

@@ -147,7 +147,7 @@ export function GalleryForm({
             {mode === "create" && (
               <div className="rounded-lg border-2 border-dashed border-sand-deep bg-sand-deep/30 p-5 text-center">
                 <p className="text-sm font-medium text-navy">
-                  Uploadez une image, ou collez un identifiant Cloudinary existant.
+                  Uploadez une image, ou collez un identifiant Cloudinary existant ci-dessous.
                 </p>
                 <label className="mt-3 inline-block">
                   <span className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-ocean px-5 py-2.5 text-sm font-semibold text-sand hover:bg-navy transition-colors">
@@ -165,7 +165,6 @@ export function GalleryForm({
                     }}
                   />
                 </label>
-                <p className="mt-2 text-xs text-silver">JPEG, PNG, WebP, AVIF · max 12 MB</p>
                 {uploadError && (
                   <p className="mt-3 inline-block rounded-lg bg-sunrise-coral/10 border border-sunrise-coral/30 px-3 py-2 text-sm text-sunrise-coral">
                     {uploadError}
@@ -176,7 +175,7 @@ export function GalleryForm({
 
             <label className="block">
               <span className="block text-xs font-semibold uppercase tracking-wider text-graphite mb-1.5">
-                Identifiant Cloudinary (public_id)
+                Identifiant Cloudinary (public_id) — ou remplacez une photo existante
               </span>
               <input
                 type="text"
@@ -187,7 +186,7 @@ export function GalleryForm({
                 required
               />
               <span className="mt-1 block text-xs text-silver">
-                Coller ici l&apos;ID d&apos;un asset déjà présent dans la médiathèque.
+                Coller ici l&apos;ID d&apos;un asset déjà présent dans la médiathèque, ou utiliser le bouton ci-dessus pour en créer un.
               </span>
             </label>
 

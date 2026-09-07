@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { saveHomeHeroAction } from "@/lib/homepage-hero-actions";
 import { MediaUploader } from "./media-uploader";
+import { ImagePicker } from "./image-picker";
 import type { HomeHeroProps } from "@/lib/homepage-hero";
 
 type Locale = "fr" | "en";
@@ -157,33 +158,14 @@ export function HomepageHeroForm({
         </h3>
         <p className="mt-1 text-xs text-silver">{t.heroImageHelp}</p>
         <div className="mt-4">
-          {heroImageId ? (
-            <div className="flex items-center gap-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/f_auto,q_auto,w_240,h_160,c_fill/${heroImageId}`}
-                alt=""
-                className="h-24 w-40 object-cover rounded-lg border border-sand-deep"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-mono text-graphite truncate">
-                  {heroImageId}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setHeroImageId("")}
-                  className="mt-1 text-xs text-sunrise-coral hover:underline"
-                >
-                  Retirer
-                </button>
-              </div>
-            </div>
-          ) : (
-            <MediaUploader
-              folder="assirik-tours/home"
-              onUploaded={(asset) => setHeroImageId(asset.publicId)}
-            />
-          )}
+          <ImagePicker
+            label={t.heroImageLabel}
+            value={heroImageId}
+            onChange={setHeroImageId}
+            folder="assirik-tours/home"
+            previewWidth={240}
+            previewHeight={160}
+          />
         </div>
       </section>
 

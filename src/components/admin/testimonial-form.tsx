@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { saveTestimonialAction } from "@/lib/testimonial-actions";
 import { MediaUploader } from "./media-uploader";
+import { ImagePicker } from "./image-picker";
 
 type TripOption = {
   slug: string;
@@ -207,31 +208,16 @@ export function TestimonialForm({
           Une photo portrait du voyageur — sinon on affiche ses initiales sur fond pastel.
         </p>
         <div className="mt-4">
-          {avatarId ? (
-            <div className="flex items-center gap-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/f_auto,q_auto,w_120,h_120,c_fill,r_max/${avatarId}`}
-                alt=""
-                className="h-12 w-12 rounded-full object-cover border border-sand-deep"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-mono text-graphite truncate">{avatarId}</p>
-                <button
-                  type="button"
-                  onClick={() => setAvatarId("")}
-                  className="mt-1 text-xs text-sunrise-coral hover:underline"
-                >
-                  Retirer
-                </button>
-              </div>
-            </div>
-          ) : (
-            <MediaUploader
-              folder="assirik-tours/testimonials"
-              onUploaded={(asset) => setAvatarId(asset.publicId)}
-            />
-          )}
+          <ImagePicker
+            label="Avatar (Cloudinary)"
+            value={avatarId}
+            onChange={(v) => setAvatarId(v)}
+            folder="assirik-tours/testimonials"
+            previewWidth={120}
+            previewHeight={120}
+            previewCrop="fill"
+            hint="Portrait carré 400×400 ou plus. Affiché en rond."
+          />
         </div>
       </section>
 

@@ -15,6 +15,7 @@ import {
   type BlogLocale,
 } from "@/lib/validators/blog";
 import { deliveryUrl } from "@/lib/cloudinary-url";
+import { ImagePicker } from "./image-picker";
 
 type SeoMeta = {
   title: string;
@@ -225,22 +226,17 @@ export function BlogPostForm({ mode, initial, canPublish, canFeatured, canDelete
               </label>
             </div>
 
-            <label className="block">
-              <span className="block text-xs font-semibold uppercase tracking-wider text-graphite mb-1.5">
-                Image de couverture (Cloudinary public_id ou chemin local)
-              </span>
-              <input
-                type="text"
+            <div className="rounded-xl border border-sand-deep bg-sand p-5">
+              <ImagePicker
+                label="Image de couverture (Cloudinary)"
                 value={coverImageId}
-                onChange={(e) => setCoverImageId(e.target.value)}
-                placeholder="ex: assirik-tours/blog/visa-schengen"
-                className="min-h-11 w-full rounded-lg border border-sand-deep bg-sand px-3 py-2.5 font-mono text-sm text-navy outline-none focus:border-ocean"
-                required
+                onChange={setCoverImageId}
+                folder="assirik-tours/blog"
+                previewWidth={240}
+                previewHeight={135}
+                hint="Recommandé : 1200×630 (ratio 16:9) pour OG / WhatsApp."
               />
-              <span className="mt-1 block text-xs text-silver">
-                Recommandé : 1200×630 (ratio 16:9) pour OG / WhatsApp.
-              </span>
-            </label>
+            </div>
 
             <label className="block">
               <span className="block text-xs font-semibold uppercase tracking-wider text-graphite mb-1.5">

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { saveServiceAction } from "@/lib/service-actions";
 import { MediaUploader } from "./media-uploader";
+import { ImagePicker } from "./image-picker";
 
 type Initial = {
   id?: string;
@@ -150,38 +151,17 @@ export function ServiceForm({
           Visuel
         </h3>
         <p className="text-xs text-silver">
-          Image par défaut affichée sur la fiche publique (à venir). Utilisez le même
-          outil que pour les destinations.
+          Image par défaut affichée sur la fiche publique. Uploadez un visuel
+          depuis votre ordinateur ou collez un public_id existant.
         </p>
-        <div className="mt-4">
-          {imageId ? (
-            <div className="flex items-center gap-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/f_auto,q_auto,w_240,h_160,c_fill/${imageId}`}
-                alt=""
-                className="h-24 w-40 object-cover rounded-lg border border-sand-deep"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-mono text-graphite truncate">
-                  {imageId}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setImageId("")}
-                  className="mt-1 text-xs text-sunrise-coral hover:underline"
-                >
-                  Retirer
-                </button>
-              </div>
-            </div>
-          ) : (
-            <MediaUploader
-              folder="assirik-tours/services"
-              onUploaded={(asset) => setImageId(asset.publicId)}
-            />
-          )}
-        </div>
+        <ImagePicker
+          label="Visuel (Cloudinary)"
+          value={imageId}
+          onChange={setImageId}
+          folder="assirik-tours/services"
+          previewWidth={240}
+          previewHeight={160}
+        />
       </section>
 
       <section className="rounded-xl border border-sand-deep bg-sand p-5 space-y-4">

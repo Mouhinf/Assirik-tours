@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { saveOfferAction } from "@/lib/offer-actions";
 import { MediaUploader } from "./media-uploader";
+import { ImagePicker } from "./image-picker";
 
 type Destination = { id: string; title: string };
 
@@ -153,33 +154,15 @@ export function OfferForm({
         </h3>
         <p className="mt-1 text-xs text-silver">Format paysage recommandé.</p>
         <div className="mt-4">
-          {coverImageId ? (
-            <div className="flex items-center gap-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/f_auto,q_auto,w_240,h_160,c_fill/${coverImageId}`}
-                alt=""
-                className="h-24 w-40 object-cover rounded-lg border border-sand-deep"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-mono text-graphite truncate">
-                  {coverImageId}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setCoverImageId("")}
-                  className="mt-1 text-xs text-sunrise-coral hover:underline"
-                >
-                  Retirer
-                </button>
-              </div>
-            </div>
-          ) : (
-            <MediaUploader
-              folder="assirik-tours/offers"
-              onUploaded={(asset) => setCoverImageId(asset.publicId)}
-            />
-          )}
+          <ImagePicker
+            label="Image de couverture (Cloudinary)"
+            value={coverImageId}
+            onChange={setCoverImageId}
+            folder="assirik-tours/offers"
+            previewWidth={240}
+            previewHeight={160}
+            hint="Paysage 16:9, 1600×900 ou plus. Stockée sur Cloudinary."
+          />
         </div>
       </section>
 

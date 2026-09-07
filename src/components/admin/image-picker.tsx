@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { uploadImageAction } from "@/lib/media-actions";
 
 export type ImagePickerAsset = {
   publicId: string;
@@ -83,14 +82,24 @@ export function ImagePicker({
     fd.append("folder", folder);
 
     startTransition(async () => {
-      const res = await uploadImageAction(fd);
-      if (res.error) {
-        setError(res.error);
+      try {
+        const r = await fetch("/api/admin/upload", {
+          method: "POST",
+          body: fd,
+        });
+        const data = (await r.json()) as
+          | { ok: true; asset: ImagePickerAsset }
+          | { error: string };
+        if ("error" in data) {
+          setError(data.error);
+          setLocalPreview(null);
+          return;
+        }
+        onChange(data.asset.publicId);
         setLocalPreview(null);
-        return;
-      }
-      if (res.ok) {
-        onChange(res.asset.publicId);
+      } catch (e) {
+        console.error("[upload] failed", e);
+        setError("Erreur réseau pendant l'upload.");
         setLocalPreview(null);
       }
     });

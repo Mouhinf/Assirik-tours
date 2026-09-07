@@ -6,6 +6,7 @@ import { resolveImage, FALLBACK_BY_SLUG } from "@/lib/photos";
 import { REGION_LABELS_FR, OFFER_KIND_LABELS_FR } from "@/lib/regions";
 import { OfferCard } from "@/components/site/offer-card";
 import { GalleryWithLightbox } from "@/components/site/gallery-with-lightbox";
+import { ContactForm } from "@/components/site/contact-form";
 import { destinationJsonLd, breadcrumbJsonLd } from "@/lib/seo/jsonld";
 import { siteConfig } from "@/lib/site-config";
 import { whatsappLink } from "@/lib/whatsapp";
@@ -169,6 +170,41 @@ export default async function DestinationDetailPage({ params }: { params: Params
               </Link>
             </div>
           </aside>
+        </div>
+      </section>
+
+      {/* Demande — formulaire dédié à cette destination */}
+      <section className="container-narrow pb-16">
+        <div className="grid lg:grid-cols-[1fr_1.4fr] gap-10 rounded-2xl bg-sand border border-sand-deep p-7 md:p-10">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-sunrise-coral">
+              Demander un devis
+            </p>
+            <h2 className="mt-2 font-display text-2xl md:text-3xl font-semibold text-navy text-balance">
+              Un projet de voyage à {dest.title} ?
+            </h2>
+            <p className="mt-3 text-sm text-graphite leading-relaxed">
+              Renseignez quelques informations — dates envisagées, nombre de
+              voyageurs, type de séjour — un conseiller connaît la destination
+              sur le terrain et vous répond sous 24h ouvrées.
+            </p>
+            <a
+              href={whatsappLink(
+                `Bonjour Assirik Tours, j'aimerais des informations sur un voyage à ${dest.title}.`,
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-whatsapp px-5 py-2.5 text-sm font-semibold text-sand hover:bg-whatsapp-hover transition-colors"
+            >
+              Discuter sur WhatsApp
+            </a>
+          </div>
+
+          <ContactForm
+            destinationSlug={dest.slug}
+            defaultSubject={`Demande — ${dest.title}`}
+            defaultMessage={`Bonjour,\n\nJe souhaite en savoir plus sur la destination « ${dest.title} ».\n\nDates envisagées et voyageurs :\n`}
+          />
         </div>
       </section>
 

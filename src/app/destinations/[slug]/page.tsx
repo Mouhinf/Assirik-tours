@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { resolveImage, FALLBACK_BY_SLUG } from "@/lib/photos";
 import { REGION_LABELS_FR, OFFER_KIND_LABELS_FR } from "@/lib/regions";
 import { OfferCard } from "@/components/site/offer-card";
+import { GalleryWithLightbox } from "@/components/site/gallery-with-lightbox";
 import { destinationJsonLd, breadcrumbJsonLd } from "@/lib/seo/jsonld";
 import { siteConfig } from "@/lib/site-config";
 import { whatsappLink } from "@/lib/whatsapp";
@@ -60,12 +61,16 @@ export default async function DestinationDetailPage({ params }: { params: Params
     .filter(Boolean);
 
   const galleryImages = (dest.gallery ?? [])
-    .map((id) => resolveImage(id, FALLBACK_BY_SLUG[slug] ?? "/photos/destinations/dakar.jpg", {
-      width: 800,
-      height: 600,
-      crop: "fill",
-    }))
-    .filter(Boolean);
+    .map((id) => {
+      const src = resolveImage(id, FALLBACK_BY_SLUG[slug] ?? "/photos/destinations/dakar.jpg", {
+        width: 1600,
+        height: 1200,
+        crop: "fill",
+      });
+      if (!src) return null;
+      return { src, alt: `${dest.title} — photo` };
+    })
+    .filter((x): x is { src: string; alt: string } => x !== null);
 
   const regionLabel = dest.customRegion?.labelFr ?? REGION_LABELS_FR[dest.region] ?? dest.region;
 
@@ -167,6 +172,26 @@ export default async function DestinationDetailPage({ params }: { params: Params
         </div>
       </section>
 
+      {/* Gallery */}
+      {galleryImages.length > 0 ? (
+        <section className="container-narrow pb-16">
+          <h2 className="font-display text-2xl font-semibold text-navy mb-6">
+            Galerie
+          </h2>
+          <GalleryWithLightbox images={galleryImages} />
+        </section>
+      ) : (
+        <section className="container-narrow pb-16">
+          <h2 className="font-display text-2xl font-semibold text-navy mb-6">
+            Galerie
+          </h2>
+          <p className="text-sm text-graphite">
+            Les photos sont ajoutées par l&apos;équipe au fur et à mesure des reportages. Pour l&apos;instant, voyez nos albums
+            <Link href="/galerie" className="ml-1 font-semibold text-ocean hover:text-navy">dans la galerie générale →</Link>
+          </p>
+        </section>
+      )}
+
       {/* Offers */}
       {dest.offers.length > 0 ? (
         <section className="container-narrow pb-20">
@@ -196,38 +221,6 @@ export default async function DestinationDetailPage({ params }: { params: Params
           </div>
         </section>
       ) : null}
-
-      {/* Gallery */}
-      {galleryImages.length > 0 ? (
-        <section className="container-narrow pb-20">
-          <h2 className="font-display text-2xl font-semibold text-navy mb-6">
-            Galerie
-          </h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {galleryImages.map((src, i) => (
-              <div key={i} className="relative aspect-[4/3] overflow-hidden rounded-xl bg-sand-deep">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={src}
-                  alt={`${dest.title} — photo ${i + 1}`}
-                  loading="lazy"
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : (
-        <section className="container-narrow pb-20">
-          <h2 className="font-display text-2xl font-semibold text-navy mb-6">
-            Galerie
-          </h2>
-          <p className="text-sm text-graphite">
-            Les photos sont ajoutées par l&apos;équipe au fur et à mesure des reportages. Pour l&apos;instant, voyez nos albums
-            <Link href="/galerie" className="ml-1 font-semibold text-ocean hover:text-navy">dans la galerie générale →</Link>
-          </p>
-        </section>
-      )}
 
       {/* Vous-y-êtes-allé ? — invitation à laisser un avis */}
       <section className="container-narrow pb-20">

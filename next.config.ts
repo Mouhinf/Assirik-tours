@@ -42,6 +42,13 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Default Server Action body limit is 1 MB which is far too small for
+  // the Cloudinary image uploader (we accept up to 10 MB images). Bump it.
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "12mb",
+    },
+  },
   async headers() {
     return [
       {

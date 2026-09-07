@@ -8,6 +8,7 @@ export function ContactForm({
   defaultSubject,
   destinationSlug,
   offerSlug,
+  serviceSlug,
 }: {
   defaultMessage?: string;
   defaultSubject?: string;
@@ -17,6 +18,8 @@ export function ContactForm({
   destinationSlug?: string;
   /** Same idea for /contact?offer=<slug>. */
   offerSlug?: string;
+  /** Same idea for /services/{slug}. */
+  serviceSlug?: string;
 } = {}) {
   const [state, formAction, isPending] = useActionState<
     ContactFormState,
@@ -65,6 +68,9 @@ export function ContactForm({
       ) : null}
       {offerSlug ? (
         <input type="hidden" name="offerSlug" value={offerSlug} />
+      ) : null}
+      {serviceSlug ? (
+        <input type="hidden" name="serviceSlug" value={serviceSlug} />
       ) : null}
       <Field
         label="Votre message"

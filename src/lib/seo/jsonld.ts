@@ -233,6 +233,48 @@ export function offerJsonLd(opts: {
 }
 
 /**
+ * Service JSON-LD — Schema.org Service.
+ *
+ * Used on /services/[slug] to expose the catalogue to Google. Falls back to
+ * a generic `Service` node when no price is provided.
+ */
+export function serviceJsonLd(opts: {
+  name: string;
+  description: string;
+  slug: string;
+  imageId?: string;
+  category?: string;
+  priceFromFCFA?: number;
+}) {
+  const cloud = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const imageUrl = opts.imageId && cloud
+    ? `https://res.cloudinary.com/${cloud}/image/upload/f_auto,q_auto,w_1200/${opts.imageId}`
+    : `${SITE_URL}/og-default.png`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: opts.name,
+    description: opts.description,
+    url: `${SITE_URL}/services/${opts.slug}`,
+    image: imageUrl,
+    provider: { "@id": `${SITE_URL}/#organization` },
+    areaServed: { "@type": "Country", name: "Sénégal" },
+    ...(opts.category ? { category: opts.category } : {}),
+    ...(typeof opts.priceFromFCFA === "number"
+      ? {
+          offers: {
+            "@type": "Offer",
+            priceCurrency: "XOF",
+            price: opts.priceFromFCFA,
+            url: `${SITE_URL}/services/${opts.slug}`,
+            availability: "https://schema.org/InStock",
+          },
+        }
+      : {}),
+  };
+}
+
+/**
  * FAQPage JSON-LD — Schema.org Question/acceptedAnswer list.
  *
  * We are generous on count (Google accepts up to ~50 questions per page

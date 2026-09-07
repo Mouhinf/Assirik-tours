@@ -56,6 +56,7 @@ export async function submitContactAction(
   const subject = str(formData.get("subject")).slice(0, 160) || null;
   const destinationSlug = str(formData.get("destinationSlug")) || null;
   const offerSlug = str(formData.get("offerSlug")) || null;
+  const serviceSlug = str(formData.get("serviceSlug")) || null;
   const message = sanitizePlainText(str(formData.get("message")));
 
   if (!firstName || !lastName || !message) {
@@ -79,17 +80,21 @@ export async function submitContactAction(
   if (!limited.ok) return { ok: false, error: limited.error };
 
   // Optional deep-link context
-  const [{ destination }, { offer }] = await Promise.all([
+  const [{ destination }, { offer }, service] = await Promise.all([
     destinationSlug
       ? prisma.destination.findUnique({ where: { slug: destinationSlug }, select: { id: true, title: true } }).then((d) => ({ destination: d }))
       : Promise.resolve({ destination: null }),
     offerSlug
       ? prisma.offer.findUnique({ where: { slug: offerSlug }, select: { id: true, destinationId: true, title: true } }).then((o) => ({ offer: o }))
       : Promise.resolve({ offer: null }),
+    serviceSlug
+      ? prisma.service.findUnique({ where: { slug: serviceSlug }, select: { title: true } })
+      : Promise.resolve(null),
   ]);
 
   const isDestinationLead = Boolean(destination?.id);
   const isOfferLead = Boolean(offer?.id);
+  const isServiceLead = Boolean(service?.title);
   const source = isOfferLead
     ? ReservationSource.OFFER
     : isDestinationLead
@@ -101,12 +106,16 @@ export async function submitContactAction(
       ? `Demande — ${offer!.title}`
       : isDestinationLead
         ? `Demande — ${destination!.title}`
-        : null);
+        : isServiceLead
+          ? `Demande de service — ${service!.title}`
+          : null);
   const tagList = isOfferLead
     ? ["Contact", "Offre"]
     : isDestinationLead
       ? ["Contact", "Destination"]
-      : ["Contact"];
+      : isServiceLead
+        ? ["Contact", "Service", `service:${serviceSlug}`]
+        : ["Contact"];
 
   // Dedup: same author + same email + same message fingerprint in the last
   // 60s → return the existing reference instead of creating a duplicate.

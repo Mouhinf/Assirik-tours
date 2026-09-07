@@ -54,12 +54,24 @@ export function ServiceGrid({ services }: { services: ServiceRow[] }) {
     .filter((c) => grouped.has(c))
     .map((c) => ({ category: c, items: grouped.get(c) ?? [] }));
 
+  // Stable slug per category for the in-page sticky nav.
+  const CAT_ANCHOR: Record<ServiceCategory, string> = {
+    VISA: "cat-visa",
+    HOTELS: "cat-hotels",
+    CHAUFFEUR: "cat-chauffeur",
+    TRANSFERT: "cat-transfert",
+    ASSURANCE: "cat-assurance",
+    ENTREPRISE: "cat-entreprise",
+    AUTRE: "cat-autre",
+  };
+
   return (
     <>
       {groups.map(({ category, items }, idx) => (
         <section
           key={category}
-          className={`container-narrow ${idx === 0 ? "pb-12" : "pb-16"}`}
+          id={CAT_ANCHOR[category]}
+          className={`container-narrow scroll-mt-32 ${idx === 0 ? "pb-12" : "pb-16"}`}
         >
           <header className="mb-6 flex items-end justify-between gap-4">
             <div>
@@ -72,7 +84,7 @@ export function ServiceGrid({ services }: { services: ServiceRow[] }) {
             </div>
             {category === "VISA" ? (
               <Link
-                href="/contact?service=visa"
+                href="/services?visa-open=1#dossier"
                 className="text-sm font-semibold text-ocean hover:text-navy whitespace-nowrap"
               >
                 Démarrer un dossier →
@@ -86,36 +98,6 @@ export function ServiceGrid({ services }: { services: ServiceRow[] }) {
           </div>
         </section>
       ))}
-
-      {/* Soft CTA banner — sits below the services */}
-      <section className="container-narrow pb-20">
-        <div className="rounded-2xl bg-navy p-8 md:p-12 text-sand">
-          <h2 className="font-display text-2xl md:text-3xl font-semibold text-sand text-balance">
-            Besoin d&apos;un service sur-mesure ?
-          </h2>
-          <p className="mt-3 max-w-2xl text-mist/90 leading-relaxed">
-            Pour les groupes, les voyages d&apos;entreprise, les tournages ou
-            tout autre cas spécifique : décrivez-nous votre besoin — un
-            conseiller vous rappelle sous 24h ouvrées.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="/contact?objet=service-sur-mesure"
-              className="inline-flex items-center gap-2 rounded-full bg-sunrise-orange px-6 py-3 text-sm font-semibold text-navy hover:bg-sunrise-yellow transition-colors"
-            >
-              Demander un devis sur mesure
-            </Link>
-            <a
-              href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? ""}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-whatsapp px-6 py-3 text-sm font-semibold text-sand hover:bg-whatsapp-hover transition-colors"
-            >
-              Discuter sur WhatsApp
-            </a>
-          </div>
-        </div>
-      </section>
     </>
   );
 }
@@ -128,8 +110,8 @@ function ServiceCard({ service: s }: { service: ServiceRow }) {
   );
 
   const ctaHref =
-    s.ctaHref && s.ctaHref.length > 0 ? s.ctaHref : `/contact?service=${s.slug}`;
-  const ctaLabel = s.ctaLabel && s.ctaLabel.length > 0 ? s.ctaLabel : "Demander un devis";
+    s.ctaHref && s.ctaHref.length > 0 ? s.ctaHref : `/services/${s.slug}`;
+  const ctaLabel = s.ctaLabel && s.ctaLabel.length > 0 ? s.ctaLabel : "Voir le détail";
 
   // Special highlight for visa — biggest friction point
   const isVisa = s.category === "VISA";

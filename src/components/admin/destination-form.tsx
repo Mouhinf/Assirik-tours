@@ -5,6 +5,7 @@ import Link from "next/link";
 import { saveDestinationAction } from "@/lib/destination-actions";
 import { MediaUploader } from "./media-uploader";
 import { ImagePicker } from "./image-picker";
+import { GalleryPicker } from "./gallery-picker";
 
 type Initial = {
   id?: string;
@@ -169,22 +170,12 @@ export function DestinationForm({
         <h3 className="font-display text-base font-semibold text-navy">
           Galerie (optionnel)
         </h3>
-        <p className="mt-1 text-xs text-silver">
-          Une image par ligne — copiez les public_id depuis la médiathèque.
-        </p>
-        <textarea
-          rows={5}
-          value={gallery.join("\n")}
-          onChange={(e) =>
-            setGallery(
-              e.target.value
-                .split("\n")
-                .map((s) => s.trim())
-                .filter(Boolean),
-            )
-          }
-          className="mt-3 w-full rounded-lg border border-sand-deep bg-sand-deep/40 px-3 py-2 text-sm font-mono text-navy focus:border-ocean focus:bg-sand outline-none"
-          placeholder="assirik-tours/destinations/lac-rose-1"
+        <GalleryPicker
+          value={gallery}
+          onChange={setGallery}
+          folder="assirik-tours/destinations"
+          label="Galerie d'images (Cloudinary)"
+          hint="Uploadez depuis votre ordinateur, ou ajoutez par public_id depuis la médiathèque."
         />
       </section>
 

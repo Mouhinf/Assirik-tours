@@ -118,7 +118,8 @@ function ServiceCard({ service: s }: { service: ServiceRow }) {
 
   return (
     <article
-      className={`group flex flex-col overflow-hidden rounded-xl border bg-sand transition-all hover:shadow-soft hover:-translate-y-0.5 ${
+      id={`service-${s.slug}`}
+      className={`group flex flex-col overflow-hidden scroll-mt-32 rounded-xl border bg-sand transition-all hover:shadow-soft hover:-translate-y-0.5 ${
         isVisa
           ? "border-ocean/60 ring-1 ring-ocean/30"
           : "border-sand-deep"

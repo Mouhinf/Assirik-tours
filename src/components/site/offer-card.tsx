@@ -14,6 +14,9 @@ export function OfferCard({
   destinationSlug,
   destinationTitle,
   coverImageId,
+  promoPriceFCFA,
+  promoEndsAt,
+  promoLabel,
   locale = "fr",
 }: {
   slug: string;
@@ -25,6 +28,9 @@ export function OfferCard({
   destinationSlug: string;
   destinationTitle: string;
   coverImageId?: string | null;
+  promoPriceFCFA?: number | null;
+  promoEndsAt?: Date | string | null;
+  promoLabel?: string;
   locale?: "fr" | "en";
 }) {
   const labels = locale === "en" ? OFFER_KIND_LABELS_EN : OFFER_KIND_LABELS_FR;
@@ -34,6 +40,18 @@ export function OfferCard({
     height: 540,
     crop: "fill",
   });
+
+  // Promo is only considered live if price < regular price and end-date has
+  // not passed (or no end-date).
+  const endsAtDate =
+    typeof promoEndsAt === "string"
+      ? new Date(promoEndsAt)
+      : promoEndsAt ?? null;
+  const promoLive =
+    typeof promoPriceFCFA === "number" &&
+    promoPriceFCFA > 0 &&
+    promoPriceFCFA < priceFCFA &&
+    (!endsAtDate || endsAtDate.getTime() > Date.now());
 
   return (
     <Link
@@ -52,7 +70,24 @@ export function OfferCard({
         <span className="absolute top-3 left-3 inline-flex items-center rounded-full bg-sand/90 px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-wider text-navy backdrop-blur">
           {labels[kind] ?? kind}
         </span>
-        {durationDays ? (
+        {promoLive ? (
+          <span
+            className="absolute top-3 right-3 inline-flex items-center rounded-full bg-sunrise-coral px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-wider text-sand shadow-md"
+            aria-label={promoLabel ?? "Promo"}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="mr-1">
+              <path d="M12 2v4" />
+              <path d="M12 18v4" />
+              <path d="M4.93 4.93l2.83 2.83" />
+              <path d="M16.24 16.24l2.83 2.83" />
+              <path d="M2 12h4" />
+              <path d="M18 12h4" />
+              <path d="M4.93 19.07l2.83-2.83" />
+              <path d="M16.24 7.76l2.83-2.83" />
+            </svg>
+            {promoLabel ?? (locale === "en" ? "Promo" : "Promo")}
+          </span>
+        ) : durationDays ? (
           <span className="absolute top-3 right-3 inline-flex items-center rounded-full bg-navy/85 px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-wider text-sand">
             {durationDays} {locale === "en" ? "days" : "jours"}
           </span>
@@ -73,10 +108,24 @@ export function OfferCard({
             <span className="block text-[0.7rem] uppercase tracking-wider text-graphite font-semibold">
               {locale === "en" ? "From" : "À partir de"}
             </span>
-            <span className={cn("font-display text-lg font-semibold text-navy")}>
-              {formatFCFA(priceFCFA)}
+            <span
+              className={cn(
+                "font-display text-lg font-semibold",
+                promoLive ? "text-sunrise-coral" : "text-navy",
+              )}
+            >
+              {formatFCFA(promoLive ? promoPriceFCFA! : priceFCFA)}
             </span>
-            <span className="text-xs text-graphite"> / {locale === "en" ? "person" : "pers."}</span>
+            {promoLive ? (
+              <>
+                <span className="ml-1.5 text-xs text-graphite line-through">
+                  {formatFCFA(priceFCFA)}
+                </span>
+                <span className="ml-1 text-xs text-graphite"> / {locale === "en" ? "person" : "pers."}</span>
+              </>
+            ) : (
+              <span className="text-xs text-graphite"> / {locale === "en" ? "person" : "pers."}</span>
+            )}
           </p>
           <span className="inline-flex items-center gap-1 text-sm font-semibold text-ocean">
             {locale === "en" ? "View offer" : "Voir l'offre"}
